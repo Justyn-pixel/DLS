@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idaho ALTA Update (New Title Co) Calculator</title>
+    <style>
+        /* Styles from previous full calculator */
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
+        .calculator { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        .logo-image { display: block; margin-left: auto; margin-right: auto; max-width: 280px; height: auto; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group:has(#estimatedHoursGroup:hidden),
+        #updateDetails:has(#estimatedHoursGroup:hidden):has(#multiplierGroup:hidden) { margin-bottom: 0; padding-bottom: 0; }
+        #estimatedHoursGroup, #multiplierGroup { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        select, input[type="number"], input[type="radio"], input[type="range"], input[type="checkbox"], button { padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; width: 95%; box-sizing: border-box; font-size: 1em; }
+        input[type="radio"], input[type="checkbox"] { width: auto; margin-right: 5px; vertical-align: middle; padding: 0; margin-bottom: 0; }
+        .inline-label { display: inline-block; font-weight: normal; margin-bottom: 10px; margin-right: 15px; }
+        input[type="range"] { width: calc(85% - 60px); vertical-align: middle; margin-right: 10px; }
+        button { background-color: #ed2025; color: white; border: none; cursor: pointer; font-size: 16px; transition: background-color 0.3s ease; width: 100%; }
+        button:hover { background-color: #c41a1e; }
+        #result { margin-top: 25px; font-size: 1.5em; font-weight: bold; text-align: center; padding: 15px; background-color: #e9ecef; border-radius: 4px; min-height: 1.5em; }
+        .value-display { display: inline-block; font-weight: bold; min-width: 40px; text-align: right; }
+        /* Hide nested sections by default */
+        #updateDetails, #multiplierGroup { display: none; }
+        #updateOptions, #multiplierGroup { border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; border-top: none; margin-top: 0; padding-top: 10px; }
+        #updateDetails { border-top: none; margin-top: 0; padding-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="calculator">
+    <img src="https://www.diamondlandsurveying.com/wp-content/uploads/2019/01/logo-1.png" alt="Diamond Land Surveying Logo" class="logo-image">
+    <h2>Idaho ALTA Update (New Title Co) Calculator</h2>
+
+    <div class="form-group">
+        <label for="acreage">Acreage:</label>
+        <input type="number" id="acreage" name="acreage" min="0" step="0.01" value="0" placeholder="e.g., 5.25" required>
+    </div>
+
+    <div id="updateOptions">
+        <h4>Update Options</h4>
+        <div class="form-group">
+            <label>Does Update Require Field Work?</label>
+            <input type="radio" id="fieldWorkNo" name="fieldWorkRequired" value="no" checked onchange="toggleUpdateDetails()">
+            <label for="fieldWorkNo" class="inline-label">No</label>
+            <input type="radio" id="fieldWorkYes" name="fieldWorkRequired" value="yes" onchange="toggleUpdateDetails()">
+            <label for="fieldWorkYes" class="inline-label">Yes</label>
+        </div>
+        <div id="updateDetails"> {/* Initially hidden */}
+            <div class="form-group">
+                <input type="checkbox" id="dueDiligence" name="dueDiligence" onchange="toggleHoursAndMultiplierVisibility()">
+                <label for="dueDiligence" class="inline-label">Due Diligence Visit</label>
+            </div>
+            <div class="form-group" id="estimatedHoursGroup">
+                <label for="estimatedHours">Estimated Hours:</label>
+                <input type="number" id="estimatedHours" name="estimatedHours" min="0" step="0.1" value="0" placeholder="e.g., 2.5">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group" id="multiplierGroup"> {/* Initially hidden */}
+        <label for="multiplier">Multiplier (0-10):</label>
+        <input type="range" id="multiplier" name="multiplier" min="0" max="10" value="0" step="1">
+        <span id="multiplierValue" class="value-display">0</span>
+    </div>
+
+    <button type="button" onclick="calculateBid()">Calculate Bid</button>
+    <div id="result"> Your estimated bid cost will appear here. </div>
+</div>
+
+<script>
+    // --- IDAHO CONFIGURATION CONSTANTS ---
+    const ID_BASE_COST_UPDATE_NEW = 3500;
+    const ID_RATE_ACRE_ALTA_UPDATE = 250;
+    const ID_COST_DUE_DILIGENCE = 500;
+    const ID_RATE_PER_UPDATE_HOUR = 250;
+    const ID_MAIN_MULTIPLIER_OFFSET = 1;
+    const ID_MAIN_MULTIPLIER_DIVISOR = 10;
+
+    // --- Get References to Elements ---
+    const multiplierSlider = document.getElementById('multiplier');
+    const multiplierValueDisplay = document.getElementById('multiplierValue');
+    const multiplierGroup = document.getElementById('multiplierGroup');
+    // No Additional Options elements needed
+    // const vegetationSlider = document.getElementById('vegetation');
+    // const vegetationValueDisplay = document.getElementById('vegetationValue');
+    // const cornersInput = document.getElementById('corners');
+    const acreageInput = document.getElementById('acreage');
+    const updateOptionsDiv = document.getElementById('updateOptions'); // Needed for context
+    const updateDetailsDiv = document.getElementById('updateDetails');
+    const dueDiligenceCheckbox = document.getElementById('dueDiligence');
+    const estimatedHoursInput = document.getElementById('estimatedHours');
+    const estimatedHoursGroup = document.getElementById('estimatedHoursGroup');
+    const resultDiv = document.getElementById('result');
+
+    // --- Event Listeners ---
+    multiplierSlider.oninput = function() { multiplierValueDisplay.textContent = this.value; }
+    // No vegetation listener needed
+
+    // --- Visibility Functions (Needed for this type) ---
+    function toggleHoursAndMultiplierVisibility() {
+        const isDueDiligenceChecked = dueDiligenceCheckbox.checked;
+        estimatedHoursGroup.style.display = isDueDiligenceChecked ? 'none' : 'block';
+        // Multiplier visibility depends only on checkbox when details are shown
+        multiplierGroup.style.display = isDueDiligenceChecked ? 'none' : 'block';
+    }
+    function toggleUpdateDetails() {
+        const fieldWorkYes = document.getElementById('fieldWorkYes').checked;
+        if (fieldWorkYes) {
+            updateDetailsDiv.style.display = 'block';
+            toggleHoursAndMultiplierVisibility(); // Set initial visibility based on checkbox
+        } else {
+            updateDetailsDiv.style.display = 'none';
+            multiplierGroup.style.display = 'none'; // Hide multiplier if no field work
+        }
+    }
+
+    // --- Main Calculation Function ---
+    function calculateBid() {
+        const baseCost = ID_BASE_COST_UPDATE_NEW;
+        const acreageRate = ID_RATE_ACRE_ALTA_UPDATE;
+
+        const acreage = parseFloat(acreageInput.value);
+        let userMultiplier = 0;
+        if (multiplierGroup.style.display === 'block') { // Check if multiplier is visible
+             userMultiplier = parseInt(multiplierSlider.value);
+             if (isNaN(userMultiplier) || userMultiplier < 0 || userMultiplier > 10) { /* ... validation ... */ return; }
+        }
+
+        if (isNaN(acreage) || acreage < 0) { resultDiv.innerText = "Invalid acreage..."; acreageInput.focus(); return; }
+
+        // Calculate base subtotal
+        const acreageFee = acreageRate * acreage;
+        const subtotal = baseCost + acreageFee;
+
+        // Adjusted subtotal is just the subtotal here (no corners/veg/service area)
+        const preMultiplierTotal = subtotal; // No service multiplier for updates
+
+        // Apply main multiplier
+        const calculationMultiplier = ID_MAIN_MULTIPLIER_OFFSET + (userMultiplier / ID_MAIN_MULTIPLIER_DIVISOR); // Defaults to 1.0 if hidden
+        let coreBidCost = preMultiplierTotal * calculationMultiplier;
+
+        // Calculate Update Add-on Costs
+        let updateAddOnCost = 0;
+        const fieldWorkRequired = document.getElementById('fieldWorkYes').checked;
+        if (fieldWorkRequired) {
+            if (dueDiligenceCheckbox.checked) {
+                updateAddOnCost += ID_COST_DUE_DILIGENCE;
+            }
+            if (estimatedHoursGroup.style.display === 'block') { // Check visibility
+                 const estimatedHours = parseFloat(estimatedHoursInput.value);
+                 if (!isNaN(estimatedHours) && estimatedHours >= 0) { updateAddOnCost += estimatedHours * ID_RATE_PER_UPDATE_HOUR; }
+                 else if (estimatedHoursInput.value !== "" && estimatedHoursInput.value !== "0") { /* ... validation ... */ return; }
+            }
+        }
+
+        // Final Cost
+        const finalBidCost = coreBidCost + updateAddOnCost;
+
+        // Display Result
+        const formattedCost = finalBidCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        resultDiv.innerText = `Estimated Bid Cost: ${formattedCost}`;
+    }
+
+    // --- Initial Setup ---
+    multiplierValueDisplay.textContent = multiplierSlider.value;
+    // No vegetation display setup needed
+    toggleUpdateDetails(); // Run once to set initial visibility based on "No" field work
+
+</script>
+</body>
+</html>
