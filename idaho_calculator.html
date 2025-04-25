@@ -14,7 +14,8 @@
         #updateDetails:has(#estimatedHoursGroup:hidden):has(#multiplierGroup:hidden) { margin-bottom: 0; padding-bottom: 0; }
         #estimatedHoursGroup, #multiplierGroup { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input[type="number"], input[type="radio"], input[type="range"], input[type="checkbox"], button { padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; width: 95%; box-sizing: border-box; }
+        /* Style select dropdown like other inputs */
+        select, input[type="number"], input[type="radio"], input[type="range"], input[type="checkbox"], button { padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; width: 95%; box-sizing: border-box; font-size: 1em; /* Ensure consistent font size */ }
         input[type="radio"], input[type="checkbox"] { width: auto; margin-right: 5px; vertical-align: middle; padding: 0; margin-bottom: 0; }
         .inline-label { display: inline-block; font-weight: normal; margin-bottom: 10px; margin-right: 15px; }
         input[type="range"] { width: calc(85% - 60px); vertical-align: middle; margin-right: 10px; }
@@ -36,15 +37,22 @@
     <h2>Idaho Survey Bid Calculator</h2>
 
     <div class="form-group">
-        <label>Survey Type:</label>
-        <input type="radio" id="baseAlta" name="surveyType" checked onchange="toggleConditionalSections()">
-        <label for="baseAlta" class="inline-label">Base ALTA</label><br>
-        <input type="radio" id="altaTopo" name="surveyType" onchange="toggleConditionalSections()">
-        <label for="altaTopo" class="inline-label">ALTA with TOPO</label><br>
-        <input type="radio" id="altaUpdateNew" name="surveyType" onchange="toggleConditionalSections()">
-        <label for="altaUpdateNew" class="inline-label">ALTA Update New Title Co</label><br>
-        <input type="radio" id="altaUpdateSame" name="surveyType" onchange="toggleConditionalSections()">
-        <label for="altaUpdateSame" class="inline-label">ALTA Update Same Title Co</label>
+        <label for="surveyType">Survey Type:</label>
+        <select id="surveyType" name="surveyType" onchange="toggleConditionalSections()">
+            <option value="alta_survey" selected>ALTA Survey</option>
+            <option value="alta_topo">ALTA Survey with topo</option>
+            <option value="alta_update_new">ALTA Update New Title Co</option>
+            <option value="alta_update_same">ALTA Update Same Title Co</option>
+            <option value="boundary">Boundary</option>
+            <option value="boundary_topo">Boundary Topo</option>
+            <option value="drone_topo">Drone Topo</option>
+            <option value="easement_drafting">Easement Drafting</option>
+            <option value="legal_exhibit">Legal Description & Exhibit</option>
+            <option value="lot_line_adjustment">Lot Line Adjustment/ Boundary Line Adjustment</option>
+            <option value="pre_alta">PreALTA</option>
+            <option value="topography">Topography</option>
+            <option value="utility_locates">Utility Locates</option>
+        </select>
     </div>
 
     <div class="form-group">
@@ -109,24 +117,57 @@
 </div>
 
 <script>
-    // --- IDAHO CONFIGURATION CONSTANTS --- (*MODIFIED PREFIXES*)
+    // --- IDAHO CONFIGURATION CONSTANTS ---
+    // !!! IMPORTANT: Update placeholder values for new survey types !!!
+    // Base Costs
     const ID_BASE_COST_ALTA = 2500;
     const ID_BASE_COST_TOPO = 4000;
     const ID_BASE_COST_UPDATE_NEW = 3500;
     const ID_BASE_COST_UPDATE_SAME = 3000;
+    const ID_BASE_COST_BOUNDARY = 1500; // Placeholder
+    const ID_BASE_COST_BOUNDARY_TOPO = 2500; // Placeholder
+    const ID_BASE_COST_DRONE_TOPO = 1800; // Placeholder
+    const ID_BASE_COST_EASEMENT = 800; // Placeholder
+    const ID_BASE_COST_LEGAL_EXHIBIT = 600; // Placeholder
+    const ID_BASE_COST_LOT_LINE = 1200; // Placeholder
+    const ID_BASE_COST_PRE_ALTA = 1000; // Placeholder
+    const ID_BASE_COST_TOPOGRAPHY = 1600; // Placeholder
+    const ID_BASE_COST_UTILITY = 900; // Placeholder
+
+    // Acreage Rates (Standard, Update, or 0)
     const ID_RATE_ACRE_STANDARD = 500;
     const ID_RATE_ACRE_UPDATE = 250;
+    const ID_RATE_ACRE_ALTA = ID_RATE_ACRE_STANDARD;
+    const ID_RATE_ACRE_TOPO = ID_RATE_ACRE_STANDARD;
+    const ID_RATE_ACRE_ALTA_UPDATE = ID_RATE_ACRE_UPDATE; // For both update types
+    const ID_RATE_ACRE_BOUNDARY = ID_RATE_ACRE_STANDARD;
+    const ID_RATE_ACRE_BOUNDARY_TOPO = ID_RATE_ACRE_STANDARD;
+    const ID_RATE_ACRE_DRONE_TOPO = ID_RATE_ACRE_STANDARD;
+    const ID_RATE_ACRE_EASEMENT = 0; // Assumed no acreage rate
+    const ID_RATE_ACRE_LEGAL_EXHIBIT = 0; // Assumed no acreage rate
+    const ID_RATE_ACRE_LOT_LINE = ID_RATE_ACRE_STANDARD;
+    const ID_RATE_ACRE_PRE_ALTA = ID_RATE_ACRE_STANDARD;
+    const ID_RATE_ACRE_TOPOGRAPHY = ID_RATE_ACRE_STANDARD;
+    const ID_RATE_ACRE_UTILITY = 0; // Assumed no acreage rate
+
+    // Additional Options (Base/Topo)
     const ID_COST_PER_CORNER = 45;
     const ID_FACTOR_VEGETATION = 0.025;
     const ID_MULTIPLIER_SERVICE_GREEN = 1.0;
     const ID_MULTIPLIER_SERVICE_YELLOW = 1.1;
     const ID_MULTIPLIER_SERVICE_RED = 1.25;
+
+    // Update Options (Field Work = Yes)
     const ID_COST_DUE_DILIGENCE = 500;
     const ID_RATE_PER_UPDATE_HOUR = 250;
+
+    // Main Multiplier Calculation
     const ID_MAIN_MULTIPLIER_OFFSET = 1;
     const ID_MAIN_MULTIPLIER_DIVISOR = 10;
 
-    // --- Get References to Elements --- (No changes needed)
+
+    // --- Get References to Elements ---
+    const surveyTypeSelect = document.getElementById('surveyType'); // Changed
     const multiplierSlider = document.getElementById('multiplier');
     const multiplierValueDisplay = document.getElementById('multiplierValue');
     const multiplierGroup = document.getElementById('multiplierGroup');
@@ -141,11 +182,11 @@
     const estimatedHoursInput = document.getElementById('estimatedHours');
     const estimatedHoursGroup = document.getElementById('estimatedHoursGroup');
 
-    // --- Event Listeners for Sliders --- (No changes needed)
+    // --- Event Listeners for Sliders ---
     multiplierSlider.oninput = function() { multiplierValueDisplay.textContent = this.value; }
     vegetationSlider.oninput = function() { vegetationValueDisplay.textContent = `${this.value * 10}%`; }
 
-    // --- Functions to Show/Hide Conditional Sections --- (No changes needed in logic)
+    // --- Functions to Show/Hide Conditional Sections ---
     function toggleHoursAndMultiplierVisibility() {
         const isDueDiligenceChecked = dueDiligenceCheckbox.checked;
         const isUpdateOptionsVisible = updateOptionsDiv.style.display === 'block';
@@ -166,37 +207,90 @@
             }
         }
     }
+    // --- MODIFIED Function ---
     function toggleConditionalSections() {
-        const selectedSurveyTypeElement = document.querySelector('input[name="surveyType"]:checked');
+        const selectedSurveyTypeValue = surveyTypeSelect.value; // Read from select
+
+        // Hide all conditional sections initially
         additionalOptionsDiv.style.display = 'none';
         updateOptionsDiv.style.display = 'none';
         updateDetailsDiv.style.display = 'none';
         multiplierGroup.style.display = 'none';
-        if (selectedSurveyTypeElement) {
-            const selectedTypeId = selectedSurveyTypeElement.id;
-            if (selectedTypeId === 'baseAlta' || selectedTypeId === 'altaTopo') {
-                additionalOptionsDiv.style.display = 'block';
-                multiplierGroup.style.display = 'block';
-            } else if (selectedTypeId === 'altaUpdateNew' || selectedTypeId === 'altaUpdateSame') {
-                updateOptionsDiv.style.display = 'block';
-                toggleUpdateDetails();
-            }
+
+        // Show sections based on selected dropdown value
+        if (selectedSurveyTypeValue === 'alta_survey' || selectedSurveyTypeValue === 'alta_topo') {
+            additionalOptionsDiv.style.display = 'block';
+            multiplierGroup.style.display = 'block';
+        } else if (selectedSurveyTypeValue === 'alta_update_new' || selectedSurveyTypeValue === 'alta_update_same') {
+            updateOptionsDiv.style.display = 'block';
+            toggleUpdateDetails(); // Manages details and multiplier visibility for updates
         }
+        // For all other new types, all conditional sections remain hidden
     }
 
-    // --- Main Calculation Function --- (*MODIFIED TO USE ID_ CONSTANTS*)
+    // --- Main Calculation Function ---
     function calculateBid() {
-        const baseCostElement = document.querySelector('input[name="surveyType"]:checked');
-        if (!baseCostElement) { /* ... error ... */ return; }
-        const selectedSurveyTypeId = baseCostElement.id;
+        // 1. Get Base Values & Validate
+        const selectedSurveyTypeValue = surveyTypeSelect.value; // Read from select
         let baseCost = 0;
-        // Use ID_ constants for base cost
-        switch (selectedSurveyTypeId) {
-            case 'baseAlta': baseCost = ID_BASE_COST_ALTA; break;
-            case 'altaTopo': baseCost = ID_BASE_COST_TOPO; break;
-            case 'altaUpdateNew': baseCost = ID_BASE_COST_UPDATE_NEW; break;
-            case 'altaUpdateSame': baseCost = ID_BASE_COST_UPDATE_SAME; break;
-            default: document.getElementById('result').innerText = "Error: Unknown survey type."; return;
+        let acreageRate = 0; // Initialize acreage rate
+
+        // *** Set Base Cost AND Acreage Rate based on selected type using Constants ***
+        switch (selectedSurveyTypeValue) {
+            case 'alta_survey':
+                baseCost = ID_BASE_COST_ALTA;
+                acreageRate = ID_RATE_ACRE_ALTA;
+                break;
+            case 'alta_topo':
+                baseCost = ID_BASE_COST_TOPO;
+                acreageRate = ID_RATE_ACRE_TOPO;
+                break;
+            case 'alta_update_new':
+                baseCost = ID_BASE_COST_UPDATE_NEW;
+                acreageRate = ID_RATE_ACRE_ALTA_UPDATE;
+                break;
+            case 'alta_update_same':
+                baseCost = ID_BASE_COST_UPDATE_SAME;
+                acreageRate = ID_RATE_ACRE_ALTA_UPDATE;
+                break;
+            case 'boundary':
+                baseCost = ID_BASE_COST_BOUNDARY;
+                acreageRate = ID_RATE_ACRE_BOUNDARY;
+                break;
+            case 'boundary_topo':
+                baseCost = ID_BASE_COST_BOUNDARY_TOPO;
+                acreageRate = ID_RATE_ACRE_BOUNDARY_TOPO;
+                break;
+            case 'drone_topo':
+                baseCost = ID_BASE_COST_DRONE_TOPO;
+                acreageRate = ID_RATE_ACRE_DRONE_TOPO;
+                break;
+            case 'easement_drafting':
+                baseCost = ID_BASE_COST_EASEMENT;
+                acreageRate = ID_RATE_ACRE_EASEMENT;
+                break;
+            case 'legal_exhibit':
+                baseCost = ID_BASE_COST_LEGAL_EXHIBIT;
+                acreageRate = ID_RATE_ACRE_LEGAL_EXHIBIT;
+                break;
+            case 'lot_line_adjustment':
+                baseCost = ID_BASE_COST_LOT_LINE;
+                acreageRate = ID_RATE_ACRE_LOT_LINE;
+                break;
+            case 'pre_alta':
+                baseCost = ID_BASE_COST_PRE_ALTA;
+                acreageRate = ID_RATE_ACRE_PRE_ALTA;
+                break;
+            case 'topography':
+                baseCost = ID_BASE_COST_TOPOGRAPHY;
+                acreageRate = ID_RATE_ACRE_TOPOGRAPHY;
+                break;
+            case 'utility_locates':
+                baseCost = ID_BASE_COST_UTILITY;
+                acreageRate = ID_RATE_ACRE_UTILITY;
+                break;
+            default:
+                document.getElementById('result').innerText = "Error: Unknown survey type selected."; return;
         }
 
         const acreage = parseFloat(acreageInput.value);
@@ -207,18 +301,17 @@
         }
         if (isNaN(acreage) || acreage < 0) { /* ... validation ... */ return; }
 
-        // Use ID_ constants for rates
-        let acreageRate = (selectedSurveyTypeId === 'altaUpdateNew' || selectedSurveyTypeId === 'altaUpdateSame')
-                           ? ID_RATE_ACRE_UPDATE : ID_RATE_ACRE_STANDARD;
-        const acreageFee = acreageRate * acreage;
+        // --- Core Calculation ---
+        // 2. Calculate Base Subtotal (acreageRate is now set by the switch)
+        const acreageFee = acreageRate * acreage; // Use rate determined above
         const subtotal = baseCost + acreageFee;
 
-        // Use ID_ constants for additional options
-        let cornersCost = 0, vegetationAddOn = 0, serviceAreaMultiplier = ID_MULTIPLIER_SERVICE_GREEN;
-        if (additionalOptionsDiv.style.display === 'block') {
+        // 3. Initialize and Calculate Base/Topo Additional Costs
+        let cornersCost = 0, vegetationAddOn = 0, serviceAreaMultiplier = ID_MULTIPLIER_SERVICE_GREEN; // Default Green
+        if (additionalOptionsDiv.style.display === 'block') { // This only shows for alta_survey and alta_topo
             const cornersValue = parseInt(cornersInput.value);
             if (!isNaN(cornersValue) && cornersValue >= 0) {
-                 cornersCost = ID_COST_PER_CORNER * cornersValue;
+                cornersCost = ID_COST_PER_CORNER * cornersValue;
             } else if (cornersInput.value !== "" && cornersInput.value !== "0") { /* ... validation ... */ return; }
 
             const vegetationSliderValue = parseInt(vegetationSlider.value);
@@ -227,36 +320,47 @@
             }
 
             const serviceAreaElement = document.querySelector('input[name="serviceArea"]:checked');
+            // *** Get Service Area Multiplier using ID and Constants ***
             if (serviceAreaElement) {
-                switch (serviceAreaElement.id) {
+                switch (serviceAreaElement.id) { // Use ID here as value was removed
                     case 'areaYellow': serviceAreaMultiplier = ID_MULTIPLIER_SERVICE_YELLOW; break;
                     case 'areaRed': serviceAreaMultiplier = ID_MULTIPLIER_SERVICE_RED; break;
                 }
             }
         }
 
+        // 4. Calculate Adjusted Subtotal and Apply Service Area Multiplier
         const adjustedSubtotal = subtotal + cornersCost + vegetationAddOn;
         const preMultiplierTotal = adjustedSubtotal * serviceAreaMultiplier;
-        // Use ID_ constants for main multiplier calculation
+
+        // 5. Calculate Main Multiplier
         const calculationMultiplier = ID_MAIN_MULTIPLIER_OFFSET + (userMultiplier / ID_MAIN_MULTIPLIER_DIVISOR);
+
+        // 6. Calculate Core Bid Cost
         let coreBidCost = preMultiplierTotal * calculationMultiplier;
 
-        // Use ID_ constants for update add-ons
+        // 7. Initialize and Calculate Update Add-on Costs
         let updateAddOnCost = 0;
-        const fieldWorkRequired = (updateOptionsDiv.style.display === 'block') && document.getElementById('fieldWorkYes').checked;
-        if (fieldWorkRequired) {
-            if (dueDiligenceCheckbox.checked) {
-                updateAddOnCost += ID_COST_DUE_DILIGENCE;
-            }
-            if (estimatedHoursGroup.style.display === 'block') {
-                 const estimatedHours = parseFloat(estimatedHoursInput.value);
-                 if (!isNaN(estimatedHours) && estimatedHours >= 0) {
-                     updateAddOnCost += estimatedHours * ID_RATE_PER_UPDATE_HOUR;
-                 } else if (estimatedHoursInput.value !== "" && estimatedHoursInput.value !== "0") { /* ... validation ... */ return; }
+        // Check visibility of the main update container first
+        if (updateOptionsDiv.style.display === 'block') {
+            const fieldWorkRequired = document.getElementById('fieldWorkYes').checked;
+            if (fieldWorkRequired) {
+                if (dueDiligenceCheckbox.checked) {
+                    updateAddOnCost += ID_COST_DUE_DILIGENCE;
+                }
+                if (estimatedHoursGroup.style.display === 'block') {
+                    const estimatedHours = parseFloat(estimatedHoursInput.value);
+                    if (!isNaN(estimatedHours) && estimatedHours >= 0) {
+                        updateAddOnCost += estimatedHours * ID_RATE_PER_UPDATE_HOUR;
+                    } else if (estimatedHoursInput.value !== "" && estimatedHoursInput.value !== "0") { /* ... validation ... */ return; }
+                }
             }
         }
 
+        // 8. Calculate Final Cost
         const finalBidCost = coreBidCost + updateAddOnCost;
+
+        // --- Display Result ---
         const formattedCost = finalBidCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
         document.getElementById('result').innerText = `Estimated Bid Cost: ${formattedCost}`;
     }
@@ -264,7 +368,7 @@
     // --- Initial Setup ---
     multiplierValueDisplay.textContent = multiplierSlider.value;
     vegetationValueDisplay.textContent = `${vegetationSlider.value * 10}%`;
-    toggleConditionalSections();
+    toggleConditionalSections(); // Run once to set initial visibility
 
 </script>
 

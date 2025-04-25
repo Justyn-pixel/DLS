@@ -20,24 +20,26 @@
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        /* MODIFIED Logo Styling */
         .logo-image {
             display: block;
-            margin: 0 auto 20px auto;
-            max-width: 350px;
+            margin: 0 auto 10px auto;
+            max-width: 100%; /* Changed from 650px to fill container width */
             height: auto;
         }
         .tagline {
             font-style: italic;
+            font-weight: bold;
             color: #555;
             margin-bottom: 40px;
-            font-size: 1.1em;
+            font-size: 0.9em;
         }
         .state-selection {
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: flex-end;
             gap: 40px;
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            flex-wrap: wrap;
         }
         .state-button {
             display: flex;
@@ -46,18 +48,17 @@
             text-decoration: none;
             color: #333;
             transition: transform 0.2s ease;
-            width: 180px; /* Give buttons a consistent width */
+            width: 180px;
         }
         .state-button:hover {
             transform: scale(1.05);
         }
-        /* Style for the actual SVG images */
         .state-shape-image {
-             width: 150px; /* Control the size */
-             height: auto; /* Maintain aspect ratio */
-             max-height: 200px; /* Prevent excessive height */
+             width: 150px;
+             height: auto;
+             max-height: 200px;
              display: block;
-             margin-bottom: 10px; /* Space between image and text */
+             margin-bottom: 10px;
         }
         .state-name {
             font-weight: bold;

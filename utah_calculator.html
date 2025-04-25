@@ -14,7 +14,7 @@
         #updateDetails:has(#estimatedHoursGroup:hidden):has(#multiplierGroup:hidden) { margin-bottom: 0; padding-bottom: 0; }
         #estimatedHoursGroup, #multiplierGroup { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input[type="number"], input[type="radio"], input[type="range"], input[type="checkbox"], button { padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; width: 95%; box-sizing: border-box; }
+        select, input[type="number"], input[type="radio"], input[type="range"], input[type="checkbox"], button { padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; width: 95%; box-sizing: border-box; font-size: 1em; }
         input[type="radio"], input[type="checkbox"] { width: auto; margin-right: 5px; vertical-align: middle; padding: 0; margin-bottom: 0; }
         .inline-label { display: inline-block; font-weight: normal; margin-bottom: 10px; margin-right: 15px; }
         input[type="range"] { width: calc(85% - 60px); vertical-align: middle; margin-right: 10px; }
@@ -36,15 +36,22 @@
     <h2>Utah Survey Bid Calculator</h2>
 
     <div class="form-group">
-        <label>Survey Type:</label>
-        <input type="radio" id="baseAlta" name="surveyType" checked onchange="toggleConditionalSections()">
-        <label for="baseAlta" class="inline-label">Base ALTA</label><br>
-        <input type="radio" id="altaTopo" name="surveyType" onchange="toggleConditionalSections()">
-        <label for="altaTopo" class="inline-label">ALTA with TOPO</label><br>
-        <input type="radio" id="altaUpdateNew" name="surveyType" onchange="toggleConditionalSections()">
-        <label for="altaUpdateNew" class="inline-label">ALTA Update New Title Co</label><br>
-        <input type="radio" id="altaUpdateSame" name="surveyType" onchange="toggleConditionalSections()">
-        <label for="altaUpdateSame" class="inline-label">ALTA Update Same Title Co</label>
+        <label for="surveyType">Survey Type:</label>
+        <select id="surveyType" name="surveyType" onchange="toggleConditionalSections()">
+            <option value="alta_survey" selected>ALTA Survey</option>
+            <option value="alta_topo">ALTA Survey with topo</option>
+            <option value="alta_update_new">ALTA Update New Title Co</option>
+            <option value="alta_update_same">ALTA Update Same Title Co</option>
+            <option value="boundary">Boundary</option>
+            <option value="boundary_topo">Boundary Topo</option>
+            <option value="drone_topo">Drone Topo</option>
+            <option value="easement_drafting">Easement Drafting</option>
+            <option value="legal_exhibit">Legal Description & Exhibit</option>
+            <option value="lot_line_adjustment">Lot Line Adjustment/ Boundary Line Adjustment</option>
+            <option value="pre_alta">PreALTA</option>
+            <option value="topography">Topography</option>
+            <option value="utility_locates">Utility Locates</option>
+        </select>
     </div>
 
     <div class="form-group">
@@ -73,7 +80,6 @@
             <label for="areaRed" class="inline-label">Red</label>
         </div>
     </div>
-
     <div id="updateOptions">
         <h4>Update Options</h4>
         <div class="form-group">
@@ -94,7 +100,6 @@
             </div>
         </div>
     </div>
-
     <div class="form-group" id="multiplierGroup">
         <label for="multiplier">Multiplier (0-10):</label>
         <input type="range" id="multiplier" name="multiplier" min="0" max="10" value="0" step="1">
@@ -109,25 +114,50 @@
 </div>
 
 <script>
-    // --- UTAH CONFIGURATION CONSTANTS --- (*MODIFIED PREFIXES*)
-    // !!! IMPORTANT: Update these values for Utah pricing !!!
-    const UT_BASE_COST_ALTA = 2500; // Example: Keep same or change
-    const UT_BASE_COST_TOPO = 4000; // Example: Keep same or change
-    const UT_BASE_COST_UPDATE_NEW = 3500; // Example: Keep same or change
-    const UT_BASE_COST_UPDATE_SAME = 3000; // Example: Keep same or change
-    const UT_RATE_ACRE_STANDARD = 500; // Example: Keep same or change
-    const UT_RATE_ACRE_UPDATE = 250; // Example: Keep same or change
-    const UT_COST_PER_CORNER = 45; // Example: Keep same or change
-    const UT_FACTOR_VEGETATION = 0.025; // Example: Keep same or change
-    const UT_MULTIPLIER_SERVICE_GREEN = 1.0; // Example: Keep same or change
-    const UT_MULTIPLIER_SERVICE_YELLOW = 1.1; // Example: Keep same or change
-    const UT_MULTIPLIER_SERVICE_RED = 1.25; // Example: Keep same or change
-    const UT_COST_DUE_DILIGENCE = 500; // Example: Keep same or change
-    const UT_RATE_PER_UPDATE_HOUR = 250; // Example: Keep same or change
-    const UT_MAIN_MULTIPLIER_OFFSET = 1; // Likely keep same
-    const UT_MAIN_MULTIPLIER_DIVISOR = 10; // Likely keep same
+    // --- UTAH CONFIGURATION CONSTANTS ---
+    // !!! IMPORTANT: Update these placeholder values for Utah pricing !!!
+    const UT_BASE_COST_ALTA = 2600; // Example: Changed for UT
+    const UT_BASE_COST_TOPO = 4200; // Example: Changed for UT
+    const UT_BASE_COST_UPDATE_NEW = 3600; // Example: Changed for UT
+    const UT_BASE_COST_UPDATE_SAME = 3100; // Example: Changed for UT
+    const UT_BASE_COST_BOUNDARY = 1600; // Placeholder
+    const UT_BASE_COST_BOUNDARY_TOPO = 2700; // Placeholder
+    const UT_BASE_COST_DRONE_TOPO = 1900; // Placeholder
+    const UT_BASE_COST_EASEMENT = 850; // Placeholder
+    const UT_BASE_COST_LEGAL_EXHIBIT = 650; // Placeholder
+    const UT_BASE_COST_LOT_LINE = 1300; // Placeholder
+    const UT_BASE_COST_PRE_ALTA = 1100; // Placeholder
+    const UT_BASE_COST_TOPOGRAPHY = 1700; // Placeholder
+    const UT_BASE_COST_UTILITY = 950; // Placeholder
 
-    // --- Get References to Elements --- (No changes needed)
+    const UT_RATE_ACRE_STANDARD = 550; // Example: Changed for UT
+    const UT_RATE_ACRE_UPDATE = 275; // Example: Changed for UT
+    const UT_RATE_ACRE_ALTA = UT_RATE_ACRE_STANDARD;
+    const UT_RATE_ACRE_TOPO = UT_RATE_ACRE_STANDARD;
+    const UT_RATE_ACRE_ALTA_UPDATE = UT_RATE_ACRE_UPDATE;
+    const UT_RATE_ACRE_BOUNDARY = UT_RATE_ACRE_STANDARD;
+    const UT_RATE_ACRE_BOUNDARY_TOPO = UT_RATE_ACRE_STANDARD;
+    const UT_RATE_ACRE_DRONE_TOPO = UT_RATE_ACRE_STANDARD;
+    const UT_RATE_ACRE_EASEMENT = 0;
+    const UT_RATE_ACRE_LEGAL_EXHIBIT = 0;
+    const UT_RATE_ACRE_LOT_LINE = UT_RATE_ACRE_STANDARD;
+    const UT_RATE_ACRE_PRE_ALTA = UT_RATE_ACRE_STANDARD;
+    const UT_RATE_ACRE_TOPOGRAPHY = UT_RATE_ACRE_STANDARD;
+    const UT_RATE_ACRE_UTILITY = 0;
+
+    const UT_COST_PER_CORNER = 50; // Example: Changed for UT
+    const UT_FACTOR_VEGETATION = 0.03; // Example: Changed for UT (3%)
+    const UT_MULTIPLIER_SERVICE_GREEN = 1.0;
+    const UT_MULTIPLIER_SERVICE_YELLOW = 1.15; // Example: Changed for UT
+    const UT_MULTIPLIER_SERVICE_RED = 1.30; // Example: Changed for UT
+    const UT_COST_DUE_DILIGENCE = 550; // Example: Changed for UT
+    const UT_RATE_PER_UPDATE_HOUR = 275; // Example: Changed for UT
+    const UT_MAIN_MULTIPLIER_OFFSET = 1;
+    const UT_MAIN_MULTIPLIER_DIVISOR = 10;
+
+
+    // --- Get References to Elements --- (No changes)
+    const surveyTypeSelect = document.getElementById('surveyType');
     const multiplierSlider = document.getElementById('multiplier');
     const multiplierValueDisplay = document.getElementById('multiplierValue');
     const multiplierGroup = document.getElementById('multiplierGroup');
@@ -142,11 +172,15 @@
     const estimatedHoursInput = document.getElementById('estimatedHours');
     const estimatedHoursGroup = document.getElementById('estimatedHoursGroup');
 
-    // --- Event Listeners for Sliders --- (No changes needed)
+    // --- Event Listeners for Sliders --- (No changes)
     multiplierSlider.oninput = function() { multiplierValueDisplay.textContent = this.value; }
     vegetationSlider.oninput = function() { vegetationValueDisplay.textContent = `${this.value * 10}%`; }
 
-    // --- Functions to Show/Hide Conditional Sections --- (No changes needed in logic)
+    // --- Functions to Show/Hide Conditional Sections --- (No changes)
+    function toggleHoursAndMultiplierVisibility() { /* ...logic... */ }
+    function toggleUpdateDetails() { /* ...logic... */ }
+    function toggleConditionalSections() { /* ...logic... */ }
+    // Function bodies are identical to Idaho file, paste them here if generating fresh
     function toggleHoursAndMultiplierVisibility() {
         const isDueDiligenceChecked = dueDiligenceCheckbox.checked;
         const isUpdateOptionsVisible = updateOptionsDiv.style.display === 'block';
@@ -168,35 +202,42 @@
         }
     }
     function toggleConditionalSections() {
-        const selectedSurveyTypeElement = document.querySelector('input[name="surveyType"]:checked');
+        const selectedSurveyTypeValue = surveyTypeSelect.value;
         additionalOptionsDiv.style.display = 'none';
         updateOptionsDiv.style.display = 'none';
         updateDetailsDiv.style.display = 'none';
         multiplierGroup.style.display = 'none';
-        if (selectedSurveyTypeElement) {
-            const selectedTypeId = selectedSurveyTypeElement.id;
-            if (selectedTypeId === 'baseAlta' || selectedTypeId === 'altaTopo') {
-                additionalOptionsDiv.style.display = 'block';
-                multiplierGroup.style.display = 'block';
-            } else if (selectedTypeId === 'altaUpdateNew' || selectedTypeId === 'altaUpdateSame') {
-                updateOptionsDiv.style.display = 'block';
-                toggleUpdateDetails();
-            }
+        if (selectedSurveyTypeValue === 'alta_survey' || selectedSurveyTypeValue === 'alta_topo') {
+            additionalOptionsDiv.style.display = 'block';
+            multiplierGroup.style.display = 'block';
+        } else if (selectedSurveyTypeValue === 'alta_update_new' || selectedSurveyTypeValue === 'alta_update_same') {
+            updateOptionsDiv.style.display = 'block';
+            toggleUpdateDetails();
         }
     }
 
+
     // --- Main Calculation Function --- (*MODIFIED TO USE UT_ CONSTANTS*)
     function calculateBid() {
-        const baseCostElement = document.querySelector('input[name="surveyType"]:checked');
-        if (!baseCostElement) { /* ... error ... */ return; }
-        const selectedSurveyTypeId = baseCostElement.id;
+        const selectedSurveyTypeValue = surveyTypeSelect.value;
         let baseCost = 0;
-        // Use UT_ constants for base cost
-        switch (selectedSurveyTypeId) {
-            case 'baseAlta': baseCost = UT_BASE_COST_ALTA; break;
-            case 'altaTopo': baseCost = UT_BASE_COST_TOPO; break;
-            case 'altaUpdateNew': baseCost = UT_BASE_COST_UPDATE_NEW; break;
-            case 'altaUpdateSame': baseCost = UT_BASE_COST_UPDATE_SAME; break;
+        let acreageRate = 0;
+
+        // Use UT_ constants
+        switch (selectedSurveyTypeValue) {
+            case 'alta_survey': baseCost = UT_BASE_COST_ALTA; acreageRate = UT_RATE_ACRE_ALTA; break;
+            case 'alta_topo': baseCost = UT_BASE_COST_TOPO; acreageRate = UT_RATE_ACRE_TOPO; break;
+            case 'alta_update_new': baseCost = UT_BASE_COST_UPDATE_NEW; acreageRate = UT_RATE_ACRE_ALTA_UPDATE; break;
+            case 'alta_update_same': baseCost = UT_BASE_COST_UPDATE_SAME; acreageRate = UT_RATE_ACRE_ALTA_UPDATE; break;
+            case 'boundary': baseCost = UT_BASE_COST_BOUNDARY; acreageRate = UT_RATE_ACRE_BOUNDARY; break;
+            case 'boundary_topo': baseCost = UT_BASE_COST_BOUNDARY_TOPO; acreageRate = UT_RATE_ACRE_BOUNDARY_TOPO; break;
+            case 'drone_topo': baseCost = UT_BASE_COST_DRONE_TOPO; acreageRate = UT_RATE_ACRE_DRONE_TOPO; break;
+            case 'easement_drafting': baseCost = UT_BASE_COST_EASEMENT; acreageRate = UT_RATE_ACRE_EASEMENT; break;
+            case 'legal_exhibit': baseCost = UT_BASE_COST_LEGAL_EXHIBIT; acreageRate = UT_RATE_ACRE_LEGAL_EXHIBIT; break;
+            case 'lot_line_adjustment': baseCost = UT_BASE_COST_LOT_LINE; acreageRate = UT_RATE_ACRE_LOT_LINE; break;
+            case 'pre_alta': baseCost = UT_BASE_COST_PRE_ALTA; acreageRate = UT_RATE_ACRE_PRE_ALTA; break;
+            case 'topography': baseCost = UT_BASE_COST_TOPOGRAPHY; acreageRate = UT_RATE_ACRE_TOPOGRAPHY; break;
+            case 'utility_locates': baseCost = UT_BASE_COST_UTILITY; acreageRate = UT_RATE_ACRE_UTILITY; break;
             default: document.getElementById('result').innerText = "Error: Unknown survey type."; return;
         }
 
@@ -208,24 +249,18 @@
         }
         if (isNaN(acreage) || acreage < 0) { /* ... validation ... */ return; }
 
-        // Use UT_ constants for rates
-        let acreageRate = (selectedSurveyTypeId === 'altaUpdateNew' || selectedSurveyTypeId === 'altaUpdateSame')
-                           ? UT_RATE_ACRE_UPDATE : UT_RATE_ACRE_STANDARD;
         const acreageFee = acreageRate * acreage;
         const subtotal = baseCost + acreageFee;
 
-        // Use UT_ constants for additional options
+        // Use UT_ constants
         let cornersCost = 0, vegetationAddOn = 0, serviceAreaMultiplier = UT_MULTIPLIER_SERVICE_GREEN;
         if (additionalOptionsDiv.style.display === 'block') {
             const cornersValue = parseInt(cornersInput.value);
-            if (!isNaN(cornersValue) && cornersValue >= 0) {
-                 cornersCost = UT_COST_PER_CORNER * cornersValue;
-            } else if (cornersInput.value !== "" && cornersInput.value !== "0") { /* ... validation ... */ return; }
+            if (!isNaN(cornersValue) && cornersValue >= 0) { cornersCost = UT_COST_PER_CORNER * cornersValue; }
+            else if (cornersInput.value !== "" && cornersInput.value !== "0") { /* ... validation ... */ return; }
 
             const vegetationSliderValue = parseInt(vegetationSlider.value);
-            if (!isNaN(vegetationSliderValue)) {
-                 vegetationAddOn = subtotal * (vegetationSliderValue * UT_FACTOR_VEGETATION);
-            }
+            if (!isNaN(vegetationSliderValue)) { vegetationAddOn = subtotal * (vegetationSliderValue * UT_FACTOR_VEGETATION); }
 
             const serviceAreaElement = document.querySelector('input[name="serviceArea"]:checked');
             if (serviceAreaElement) {
@@ -238,22 +273,21 @@
 
         const adjustedSubtotal = subtotal + cornersCost + vegetationAddOn;
         const preMultiplierTotal = adjustedSubtotal * serviceAreaMultiplier;
-        // Use UT_ constants for main multiplier calculation
+        // Use UT_ constants
         const calculationMultiplier = UT_MAIN_MULTIPLIER_OFFSET + (userMultiplier / UT_MAIN_MULTIPLIER_DIVISOR);
         let coreBidCost = preMultiplierTotal * calculationMultiplier;
 
-        // Use UT_ constants for update add-ons
+        // Use UT_ constants
         let updateAddOnCost = 0;
-        const fieldWorkRequired = (updateOptionsDiv.style.display === 'block') && document.getElementById('fieldWorkYes').checked;
-        if (fieldWorkRequired) {
-            if (dueDiligenceCheckbox.checked) {
-                updateAddOnCost += UT_COST_DUE_DILIGENCE;
-            }
-            if (estimatedHoursGroup.style.display === 'block') {
-                 const estimatedHours = parseFloat(estimatedHoursInput.value);
-                 if (!isNaN(estimatedHours) && estimatedHours >= 0) {
-                     updateAddOnCost += estimatedHours * UT_RATE_PER_UPDATE_HOUR;
-                 } else if (estimatedHoursInput.value !== "" && estimatedHoursInput.value !== "0") { /* ... validation ... */ return; }
+        if (updateOptionsDiv.style.display === 'block') {
+            const fieldWorkRequired = document.getElementById('fieldWorkYes').checked;
+            if (fieldWorkRequired) {
+                if (dueDiligenceCheckbox.checked) { updateAddOnCost += UT_COST_DUE_DILIGENCE; }
+                if (estimatedHoursGroup.style.display === 'block') {
+                    const estimatedHours = parseFloat(estimatedHoursInput.value);
+                    if (!isNaN(estimatedHours) && estimatedHours >= 0) { updateAddOnCost += estimatedHours * UT_RATE_PER_UPDATE_HOUR; }
+                    else if (estimatedHoursInput.value !== "" && estimatedHoursInput.value !== "0") { /* ... validation ... */ return; }
+                }
             }
         }
 
