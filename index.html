@@ -5,80 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diamond Land Surveying - Bid Calculator</title>
     <style>
-        body {
-            font-family: sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 40px;
-            text-align: center;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background-color: #fff;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        /* MODIFIED Logo Styling */
-        .logo-image {
-            display: block;
-            margin: 0 auto 10px auto;
-            max-width: 100%; /* Changed from 650px to fill container width */
-            height: auto;
-        }
-        .tagline {
-            font-style: italic;
-            font-weight: bold;
-            color: #555;
-            margin-bottom: 40px;
-            font-size: 0.9em;
-        }
-        .state-selection {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 40px;
-            flex-wrap: wrap;
-        }
-        .state-button {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: #333;
-            transition: transform 0.2s ease;
-            width: 180px;
-        }
-        .state-button:hover {
-            transform: scale(1.05);
-        }
-        .state-shape-image {
-             width: 150px;
-             height: auto;
-             max-height: 200px;
-             display: block;
-             margin-bottom: 10px;
-        }
-        .state-name {
-            font-weight: bold;
-            font-size: 1.2em;
-        }
+        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 40px; text-align: center; }
+        .container { max-width: 800px; margin: auto; background-color: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .logo-image { display: block; margin: 0 auto 20px auto; max-width: 100%; height: auto; }
+        .tagline { font-style: italic; font-weight: bold; color: #555; margin-bottom: 40px; font-size: 1.1em; }
+        .state-selection { display: flex; justify-content: center; align-items: flex-end; gap: 40px; flex-wrap: wrap; }
+        .state-button { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #333; transition: transform 0.2s ease; width: 180px; }
+        .state-button:hover { transform: scale(1.05); }
+        .state-shape-image { width: 150px; height: auto; max-height: 200px; display: block; margin-bottom: 10px; }
+        .state-name { font-weight: bold; font-size: 1.2em; }
     </style>
 </head>
 <body>
     <div class="container">
         <img src="https://www.diamondlandsurveying.com/wp-content/uploads/2019/01/logo-1.png" alt="Diamond Land Surveying Logo" class="logo-image">
-
         <p class="tagline"><em>redefining professionalism in land surveying</em></p>
-
         <div class="state-selection">
-            <a href="idaho_calculator.html" class="state-button">
+            <a href="idaho_home.html" class="state-button">
                 <img src="outline-id.svg" alt="Idaho Outline" class="state-shape-image">
                 <span class="state-name">Idaho</span>
             </a>
-
-            <a href="utah_calculator.html" class="state-button">
+            <a href="utah_home.html" class="state-button">
                  <img src="outline-ut.svg" alt="Utah Outline" class="state-shape-image">
                 <span class="state-name">Utah</span>
             </a>
