@@ -10,7 +10,7 @@
             background-color: #f4f4f4;
             margin: 0;
             padding: 40px;
-            text-align: center; /* Center content */
+            text-align: center;
         }
         .container {
             max-width: 800px;
@@ -22,8 +22,8 @@
         }
         .logo-image {
             display: block;
-            margin: 0 auto 20px auto; /* Center and add space below */
-            max-width: 350px; /* Larger logo */
+            margin: 0 auto 20px auto;
+            max-width: 350px;
             height: auto;
         }
         .tagline {
@@ -33,35 +33,31 @@
             font-size: 1.1em;
         }
         .state-selection {
-            display: flex; /* Arrange buttons side-by-side */
-            justify-content: center; /* Center buttons horizontally */
-            align-items: flex-start; /* Align items at the top */
-            gap: 40px; /* Space between buttons */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 40px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
         }
         .state-button {
             display: flex;
-            flex-direction: column; /* Stack image/placeholder and text */
-            align-items: center; /* Center items horizontally */
-            text-decoration: none; /* Remove underline from link */
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
             color: #333;
             transition: transform 0.2s ease;
+            width: 180px; /* Give buttons a consistent width */
         }
         .state-button:hover {
-            transform: scale(1.05); /* Slight zoom on hover */
+            transform: scale(1.05);
         }
-        .state-shape-placeholder {
-            /* Placeholder styling - REPLACE with your <img> tag */
-            width: 150px;
-            height: 200px; /* Adjust aspect ratio as needed */
-            border: 2px dashed #ccc;
-            background-color: #eee;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.9em;
-            color: #888;
-            margin-bottom: 10px; /* Space between shape and text */
-            border-radius: 5px; /* Optional rounding */
+        /* Style for the actual SVG images */
+        .state-shape-image {
+             width: 150px; /* Control the size */
+             height: auto; /* Maintain aspect ratio */
+             max-height: 200px; /* Prevent excessive height */
+             display: block;
+             margin-bottom: 10px; /* Space between image and text */
         }
         .state-name {
             font-weight: bold;
@@ -77,15 +73,12 @@
 
         <div class="state-selection">
             <a href="idaho_calculator.html" class="state-button">
-                <div class="state-shape-placeholder">
-                    Idaho Shape Placeholder
-                </div>
+                <img src="outline-id.svg" alt="Idaho Outline" class="state-shape-image">
                 <span class="state-name">Idaho</span>
             </a>
 
             <a href="utah_calculator.html" class="state-button">
-                 <div class="state-shape-placeholder" style="height: 180px;"> Utah Shape Placeholder
-                </div>
+                 <img src="outline-ut.svg" alt="Utah Outline" class="state-shape-image">
                 <span class="state-name">Utah</span>
             </a>
         </div>
