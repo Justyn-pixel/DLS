@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utah Bid Calculator</title>
+    <style>
+        /* Styles remain the same */
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
+        .calculator { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        .logo-image { display: block; margin-left: auto; margin-right: auto; max-width: 280px; height: auto; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group:has(#estimatedHoursGroup:hidden),
+        #updateDetails:has(#estimatedHoursGroup:hidden):has(#multiplierGroup:hidden) { margin-bottom: 0; padding-bottom: 0; }
+        #estimatedHoursGroup, #multiplierGroup { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="number"], input[type="radio"], input[type="range"], input[type="checkbox"], button { padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; width: 95%; box-sizing: border-box; }
+        input[type="radio"], input[type="checkbox"] { width: auto; margin-right: 5px; vertical-align: middle; padding: 0; margin-bottom: 0; }
+        .inline-label { display: inline-block; font-weight: normal; margin-bottom: 10px; margin-right: 15px; }
+        input[type="range"] { width: calc(85% - 60px); vertical-align: middle; margin-right: 10px; }
+        button { background-color: #ed2025; color: white; border: none; cursor: pointer; font-size: 16px; transition: background-color 0.3s ease; width: 100%; }
+        button:hover { background-color: #c41a1e; }
+        #result { margin-top: 25px; font-size: 1.5em; font-weight: bold; text-align: center; padding: 15px; background-color: #e9ecef; border-radius: 4px; }
+        .value-display { display: inline-block; font-weight: bold; min-width: 40px; text-align: right; }
+        #additionalOptions, #updateOptions, #updateDetails, #multiplierGroup { display: none; border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; }
+        #updateOptions, #multiplierGroup { border-top: none; margin-top: 0; padding-top: 10px; }
+        #updateDetails { border-top: none; margin-top: 0; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+
+    <img src="https://www.diamondlandsurveying.com/wp-content/uploads/2019/01/logo-1.png" alt="Diamond Land Surveying Logo" class="logo-image">
+
+    <h2>Utah Survey Bid Calculator</h2>
+
+    <div class="form-group">
+        <label>Survey Type:</label>
+        <input type="radio" id="baseAlta" name="surveyType" checked onchange="toggleConditionalSections()">
+        <label for="baseAlta" class="inline-label">Base ALTA</label><br>
+        <input type="radio" id="altaTopo" name="surveyType" onchange="toggleConditionalSections()">
+        <label for="altaTopo" class="inline-label">ALTA with TOPO</label><br>
+        <input type="radio" id="altaUpdateNew" name="surveyType" onchange="toggleConditionalSections()">
+        <label for="altaUpdateNew" class="inline-label">ALTA Update New Title Co</label><br>
+        <input type="radio" id="altaUpdateSame" name="surveyType" onchange="toggleConditionalSections()">
+        <label for="altaUpdateSame" class="inline-label">ALTA Update Same Title Co</label>
+    </div>
+
+    <div class="form-group">
+        <label for="acreage">Acreage:</label>
+        <input type="number" id="acreage" name="acreage" min="0" step="0.01" placeholder="e.g., 5.25" required>
+    </div>
+
+    <div id="additionalOptions">
+        <h4>Additional Options</h4>
+        <div class="form-group">
+            <label for="corners">Number of Property Corners:</label>
+            <input type="number" id="corners" name="corners" min="0" step="1" value="0" placeholder="e.g., 4">
+        </div>
+        <div class="form-group">
+            <label for="vegetation">High Vegetation Percentage:</label>
+            <input type="range" id="vegetation" name="vegetation" min="0" max="10" value="0" step="1">
+            <span id="vegetationValue" class="value-display">0%</span>
+        </div>
+        <div class="form-group">
+            <label>Service Area:</label>
+            <input type="radio" id="areaGreen" name="serviceArea" checked>
+            <label for="areaGreen" class="inline-label">Green</label>
+            <input type="radio" id="areaYellow" name="serviceArea">
+            <label for="areaYellow" class="inline-label">Yellow</label>
+            <input type="radio" id="areaRed" name="serviceArea">
+            <label for="areaRed" class="inline-label">Red</label>
+        </div>
+    </div>
+
+    <div id="updateOptions">
+        <h4>Update Options</h4>
+        <div class="form-group">
+            <label>Does Update Require Field Work?</label>
+            <input type="radio" id="fieldWorkNo" name="fieldWorkRequired" value="no" checked onchange="toggleUpdateDetails()">
+            <label for="fieldWorkNo" class="inline-label">No</label>
+            <input type="radio" id="fieldWorkYes" name="fieldWorkRequired" value="yes" onchange="toggleUpdateDetails()">
+            <label for="fieldWorkYes" class="inline-label">Yes</label>
+        </div>
+        <div id="updateDetails">
+            <div class="form-group">
+                <input type="checkbox" id="dueDiligence" name="dueDiligence" onchange="toggleHoursAndMultiplierVisibility()">
+                <label for="dueDiligence" class="inline-label">Due Diligence Visit</label>
+            </div>
+            <div class="form-group" id="estimatedHoursGroup">
+                <label for="estimatedHours">Estimated Hours:</label>
+                <input type="number" id="estimatedHours" name="estimatedHours" min="0" step="0.1" value="0" placeholder="e.g., 2.5">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group" id="multiplierGroup">
+        <label for="multiplier">Multiplier (0-10):</label>
+        <input type="range" id="multiplier" name="multiplier" min="0" max="10" value="0" step="1">
+        <span id="multiplierValue" class="value-display">0</span>
+    </div>
+
+    <button type="button" onclick="calculateBid()">Calculate Bid</button>
+
+    <div id="result">
+        Your estimated bid cost will appear here.
+    </div>
+</div>
+
+<script>
+    // --- UTAH CONFIGURATION CONSTANTS --- (*MODIFIED PREFIXES*)
+    // !!! IMPORTANT: Update these values for Utah pricing !!!
+    const UT_BASE_COST_ALTA = 2500; // Example: Keep same or change
+    const UT_BASE_COST_TOPO = 4000; // Example: Keep same or change
+    const UT_BASE_COST_UPDATE_NEW = 3500; // Example: Keep same or change
+    const UT_BASE_COST_UPDATE_SAME = 3000; // Example: Keep same or change
+    const UT_RATE_ACRE_STANDARD = 500; // Example: Keep same or change
+    const UT_RATE_ACRE_UPDATE = 250; // Example: Keep same or change
+    const UT_COST_PER_CORNER = 45; // Example: Keep same or change
+    const UT_FACTOR_VEGETATION = 0.025; // Example: Keep same or change
+    const UT_MULTIPLIER_SERVICE_GREEN = 1.0; // Example: Keep same or change
+    const UT_MULTIPLIER_SERVICE_YELLOW = 1.1; // Example: Keep same or change
+    const UT_MULTIPLIER_SERVICE_RED = 1.25; // Example: Keep same or change
+    const UT_COST_DUE_DILIGENCE = 500; // Example: Keep same or change
+    const UT_RATE_PER_UPDATE_HOUR = 250; // Example: Keep same or change
+    const UT_MAIN_MULTIPLIER_OFFSET = 1; // Likely keep same
+    const UT_MAIN_MULTIPLIER_DIVISOR = 10; // Likely keep same
+
+    // --- Get References to Elements --- (No changes needed)
+    const multiplierSlider = document.getElementById('multiplier');
+    const multiplierValueDisplay = document.getElementById('multiplierValue');
+    const multiplierGroup = document.getElementById('multiplierGroup');
+    const vegetationSlider = document.getElementById('vegetation');
+    const vegetationValueDisplay = document.getElementById('vegetationValue');
+    const additionalOptionsDiv = document.getElementById('additionalOptions');
+    const updateOptionsDiv = document.getElementById('updateOptions');
+    const updateDetailsDiv = document.getElementById('updateDetails');
+    const cornersInput = document.getElementById('corners');
+    const acreageInput = document.getElementById('acreage');
+    const dueDiligenceCheckbox = document.getElementById('dueDiligence');
+    const estimatedHoursInput = document.getElementById('estimatedHours');
+    const estimatedHoursGroup = document.getElementById('estimatedHoursGroup');
+
+    // --- Event Listeners for Sliders --- (No changes needed)
+    multiplierSlider.oninput = function() { multiplierValueDisplay.textContent = this.value; }
+    vegetationSlider.oninput = function() { vegetationValueDisplay.textContent = `${this.value * 10}%`; }
+
+    // --- Functions to Show/Hide Conditional Sections --- (No changes needed in logic)
+    function toggleHoursAndMultiplierVisibility() {
+        const isDueDiligenceChecked = dueDiligenceCheckbox.checked;
+        const isUpdateOptionsVisible = updateOptionsDiv.style.display === 'block';
+        estimatedHoursGroup.style.display = isDueDiligenceChecked ? 'none' : 'block';
+        if (isUpdateOptionsVisible) {
+            multiplierGroup.style.display = isDueDiligenceChecked ? 'none' : 'block';
+        }
+    }
+    function toggleUpdateDetails() {
+        const fieldWorkYes = document.getElementById('fieldWorkYes').checked;
+        if (fieldWorkYes) {
+            updateDetailsDiv.style.display = 'block';
+            toggleHoursAndMultiplierVisibility();
+        } else {
+            updateDetailsDiv.style.display = 'none';
+            if (updateOptionsDiv.style.display === 'block') {
+                 multiplierGroup.style.display = 'none';
+            }
+        }
+    }
+    function toggleConditionalSections() {
+        const selectedSurveyTypeElement = document.querySelector('input[name="surveyType"]:checked');
+        additionalOptionsDiv.style.display = 'none';
+        updateOptionsDiv.style.display = 'none';
+        updateDetailsDiv.style.display = 'none';
+        multiplierGroup.style.display = 'none';
+        if (selectedSurveyTypeElement) {
+            const selectedTypeId = selectedSurveyTypeElement.id;
+            if (selectedTypeId === 'baseAlta' || selectedTypeId === 'altaTopo') {
+                additionalOptionsDiv.style.display = 'block';
+                multiplierGroup.style.display = 'block';
+            } else if (selectedTypeId === 'altaUpdateNew' || selectedTypeId === 'altaUpdateSame') {
+                updateOptionsDiv.style.display = 'block';
+                toggleUpdateDetails();
+            }
+        }
+    }
+
+    // --- Main Calculation Function --- (*MODIFIED TO USE UT_ CONSTANTS*)
+    function calculateBid() {
+        const baseCostElement = document.querySelector('input[name="surveyType"]:checked');
+        if (!baseCostElement) { /* ... error ... */ return; }
+        const selectedSurveyTypeId = baseCostElement.id;
+        let baseCost = 0;
+        // Use UT_ constants for base cost
+        switch (selectedSurveyTypeId) {
+            case 'baseAlta': baseCost = UT_BASE_COST_ALTA; break;
+            case 'altaTopo': baseCost = UT_BASE_COST_TOPO; break;
+            case 'altaUpdateNew': baseCost = UT_BASE_COST_UPDATE_NEW; break;
+            case 'altaUpdateSame': baseCost = UT_BASE_COST_UPDATE_SAME; break;
+            default: document.getElementById('result').innerText = "Error: Unknown survey type."; return;
+        }
+
+        const acreage = parseFloat(acreageInput.value);
+        let userMultiplier = 0;
+        if (multiplierGroup.style.display === 'block') {
+             userMultiplier = parseInt(multiplierSlider.value);
+             if (isNaN(userMultiplier) || userMultiplier < 0 || userMultiplier > 10) { /* ... validation ... */ return; }
+        }
+        if (isNaN(acreage) || acreage < 0) { /* ... validation ... */ return; }
+
+        // Use UT_ constants for rates
+        let acreageRate = (selectedSurveyTypeId === 'altaUpdateNew' || selectedSurveyTypeId === 'altaUpdateSame')
+                           ? UT_RATE_ACRE_UPDATE : UT_RATE_ACRE_STANDARD;
+        const acreageFee = acreageRate * acreage;
+        const subtotal = baseCost + acreageFee;
+
+        // Use UT_ constants for additional options
+        let cornersCost = 0, vegetationAddOn = 0, serviceAreaMultiplier = UT_MULTIPLIER_SERVICE_GREEN;
+        if (additionalOptionsDiv.style.display === 'block') {
+            const cornersValue = parseInt(cornersInput.value);
+            if (!isNaN(cornersValue) && cornersValue >= 0) {
+                 cornersCost = UT_COST_PER_CORNER * cornersValue;
+            } else if (cornersInput.value !== "" && cornersInput.value !== "0") { /* ... validation ... */ return; }
+
+            const vegetationSliderValue = parseInt(vegetationSlider.value);
+            if (!isNaN(vegetationSliderValue)) {
+                 vegetationAddOn = subtotal * (vegetationSliderValue * UT_FACTOR_VEGETATION);
+            }
+
+            const serviceAreaElement = document.querySelector('input[name="serviceArea"]:checked');
+            if (serviceAreaElement) {
+                switch (serviceAreaElement.id) {
+                    case 'areaYellow': serviceAreaMultiplier = UT_MULTIPLIER_SERVICE_YELLOW; break;
+                    case 'areaRed': serviceAreaMultiplier = UT_MULTIPLIER_SERVICE_RED; break;
+                }
+            }
+        }
+
+        const adjustedSubtotal = subtotal + cornersCost + vegetationAddOn;
+        const preMultiplierTotal = adjustedSubtotal * serviceAreaMultiplier;
+        // Use UT_ constants for main multiplier calculation
+        const calculationMultiplier = UT_MAIN_MULTIPLIER_OFFSET + (userMultiplier / UT_MAIN_MULTIPLIER_DIVISOR);
+        let coreBidCost = preMultiplierTotal * calculationMultiplier;
+
+        // Use UT_ constants for update add-ons
+        let updateAddOnCost = 0;
+        const fieldWorkRequired = (updateOptionsDiv.style.display === 'block') && document.getElementById('fieldWorkYes').checked;
+        if (fieldWorkRequired) {
+            if (dueDiligenceCheckbox.checked) {
+                updateAddOnCost += UT_COST_DUE_DILIGENCE;
+            }
+            if (estimatedHoursGroup.style.display === 'block') {
+                 const estimatedHours = parseFloat(estimatedHoursInput.value);
+                 if (!isNaN(estimatedHours) && estimatedHours >= 0) {
+                     updateAddOnCost += estimatedHours * UT_RATE_PER_UPDATE_HOUR;
+                 } else if (estimatedHoursInput.value !== "" && estimatedHoursInput.value !== "0") { /* ... validation ... */ return; }
+            }
+        }
+
+        const finalBidCost = coreBidCost + updateAddOnCost;
+        const formattedCost = finalBidCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        document.getElementById('result').innerText = `Estimated Bid Cost: ${formattedCost}`;
+    }
+
+    // --- Initial Setup ---
+    multiplierValueDisplay.textContent = multiplierSlider.value;
+    vegetationValueDisplay.textContent = `${vegetationSlider.value * 10}%`;
+    toggleConditionalSections();
+
+</script>
+
+</body>
+</html>

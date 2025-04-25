@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diamond Land Surveying - Bid Calculator</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 40px;
+            text-align: center; /* Center content */
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .logo-image {
+            display: block;
+            margin: 0 auto 20px auto; /* Center and add space below */
+            max-width: 350px; /* Larger logo */
+            height: auto;
+        }
+        .tagline {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        .state-selection {
+            display: flex; /* Arrange buttons side-by-side */
+            justify-content: center; /* Center buttons horizontally */
+            align-items: flex-start; /* Align items at the top */
+            gap: 40px; /* Space between buttons */
+        }
+        .state-button {
+            display: flex;
+            flex-direction: column; /* Stack image/placeholder and text */
+            align-items: center; /* Center items horizontally */
+            text-decoration: none; /* Remove underline from link */
+            color: #333;
+            transition: transform 0.2s ease;
+        }
+        .state-button:hover {
+            transform: scale(1.05); /* Slight zoom on hover */
+        }
+        .state-shape-placeholder {
+            /* Placeholder styling - REPLACE with your <img> tag */
+            width: 150px;
+            height: 200px; /* Adjust aspect ratio as needed */
+            border: 2px dashed #ccc;
+            background-color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 10px; /* Space between shape and text */
+            border-radius: 5px; /* Optional rounding */
+        }
+        .state-name {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://www.diamondlandsurveying.com/wp-content/uploads/2019/01/logo-1.png" alt="Diamond Land Surveying Logo" class="logo-image">
+
+        <p class="tagline"><em>redefining professionalism in land surveying</em></p>
+
+        <div class="state-selection">
+            <a href="idaho_calculator.html" class="state-button">
+                <div class="state-shape-placeholder">
+                    Idaho Shape Placeholder
+                </div>
+                <span class="state-name">Idaho</span>
+            </a>
+
+            <a href="utah_calculator.html" class="state-button">
+                 <div class="state-shape-placeholder" style="height: 180px;"> Utah Shape Placeholder
+                </div>
+                <span class="state-name">Utah</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
