@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Idaho Bid Calculator</title>
     <style>
-        /* Styles remain the same */
+        /* Styles */
         body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
         .calculator { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
         .logo-image { display: block; margin-left: auto; margin-right: auto; max-width: 280px; height: auto; margin-bottom: 25px; }
@@ -14,8 +14,7 @@
         #updateDetails:has(#estimatedHoursGroup:hidden):has(#multiplierGroup:hidden) { margin-bottom: 0; padding-bottom: 0; }
         #estimatedHoursGroup, #multiplierGroup { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; }
-        /* Style select dropdown like other inputs */
-        select, input[type="number"], input[type="radio"], input[type="range"], input[type="checkbox"], button { padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; width: 95%; box-sizing: border-box; font-size: 1em; /* Ensure consistent font size */ }
+        select, input[type="number"], input[type="radio"], input[type="range"], input[type="checkbox"], button { padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; width: 95%; box-sizing: border-box; font-size: 1em; }
         input[type="radio"], input[type="checkbox"] { width: auto; margin-right: 5px; vertical-align: middle; padding: 0; margin-bottom: 0; }
         .inline-label { display: inline-block; font-weight: normal; margin-bottom: 10px; margin-right: 15px; }
         input[type="range"] { width: calc(85% - 60px); vertical-align: middle; margin-right: 10px; }
@@ -23,9 +22,20 @@
         button:hover { background-color: #c41a1e; }
         #result { margin-top: 25px; font-size: 1.5em; font-weight: bold; text-align: center; padding: 15px; background-color: #e9ecef; border-radius: 4px; }
         .value-display { display: inline-block; font-weight: bold; min-width: 40px; text-align: right; }
-        #additionalOptions, #updateOptions, #updateDetails, #multiplierGroup { display: none; border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; }
-        #updateOptions, #multiplierGroup { border-top: none; margin-top: 0; padding-top: 10px; }
-        #updateDetails { border-top: none; margin-top: 0; padding-top: 10px; }
+        /* Hide all conditional sections by default */
+        #acreageGroup, /* Added */
+        #additionalOptions,
+        #updateOptions,
+        #updateDetails,
+        #multiplierGroup,
+        #legalDescGroup, /* Added */
+        #easementGroup /* Added */ {
+            display: none;
+            border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;
+         }
+         /* Remove extra separators/padding for nested/related groups */
+         #additionalOptions, #updateOptions, #multiplierGroup, #legalDescGroup, #easementGroup { border-top: none; margin-top: 0; padding-top: 10px; }
+         #updateDetails { border-top: none; margin-top: 0; padding-top: 10px; }
     </style>
 </head>
 <body>
@@ -33,7 +43,6 @@
 <div class="calculator">
 
     <img src="https://www.diamondlandsurveying.com/wp-content/uploads/2019/01/logo-1.png" alt="Diamond Land Surveying Logo" class="logo-image">
-
     <h2>Idaho Survey Bid Calculator</h2>
 
     <div class="form-group">
@@ -55,9 +64,19 @@
         </select>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" id="acreageGroup">
         <label for="acreage">Acreage:</label>
-        <input type="number" id="acreage" name="acreage" min="0" step="0.01" placeholder="e.g., 5.25" required>
+        <input type="number" id="acreage" name="acreage" min="0" step="0.01" value="0" placeholder="e.g., 5.25" required>
+    </div>
+
+    <div class="form-group" id="legalDescGroup">
+        <label for="numDescriptions">Number of Descriptions:</label>
+        <input type="number" id="numDescriptions" name="numDescriptions" min="1" step="1" value="1">
+    </div>
+
+    <div class="form-group" id="easementGroup">
+        <label for="numEasements">Number of Easements:</label>
+        <input type="number" id="numEasements" name="numEasements" min="1" step="1" value="1">
     </div>
 
     <div id="additionalOptions">
@@ -81,7 +100,6 @@
             <label for="areaRed" class="inline-label">Red</label>
         </div>
     </div>
-
     <div id="updateOptions">
         <h4>Update Options</h4>
         <div class="form-group">
@@ -102,7 +120,6 @@
             </div>
         </div>
     </div>
-
     <div class="form-group" id="multiplierGroup">
         <label for="multiplier">Multiplier (0-10):</label>
         <input type="range" id="multiplier" name="multiplier" min="0" max="10" value="0" step="1">
@@ -110,64 +127,56 @@
     </div>
 
     <button type="button" onclick="calculateBid()">Calculate Bid</button>
-
-    <div id="result">
-        Your estimated bid cost will appear here.
-    </div>
+    <div id="result"> Your estimated bid cost will appear here. </div>
 </div>
 
 <script>
     // --- IDAHO CONFIGURATION CONSTANTS ---
-    // !!! IMPORTANT: Update placeholder values for new survey types !!!
-    // Base Costs
+    // Base Costs (Updated for Legal/Easement)
     const ID_BASE_COST_ALTA = 2500;
     const ID_BASE_COST_TOPO = 4000;
     const ID_BASE_COST_UPDATE_NEW = 3500;
     const ID_BASE_COST_UPDATE_SAME = 3000;
-    const ID_BASE_COST_BOUNDARY = 1500; // Placeholder
-    const ID_BASE_COST_BOUNDARY_TOPO = 2500; // Placeholder
-    const ID_BASE_COST_DRONE_TOPO = 1800; // Placeholder
-    const ID_BASE_COST_EASEMENT = 800; // Placeholder
-    const ID_BASE_COST_LEGAL_EXHIBIT = 600; // Placeholder
-    const ID_BASE_COST_LOT_LINE = 1200; // Placeholder
-    const ID_BASE_COST_PRE_ALTA = 1000; // Placeholder
-    const ID_BASE_COST_TOPOGRAPHY = 1600; // Placeholder
-    const ID_BASE_COST_UTILITY = 900; // Placeholder
+    const ID_BASE_COST_BOUNDARY = 1500;
+    const ID_BASE_COST_BOUNDARY_TOPO = 2500;
+    const ID_BASE_COST_DRONE_TOPO = 1800;
+    const ID_BASE_COST_EASEMENT = 1250; // Set
+    const ID_BASE_COST_LEGAL_EXHIBIT = 1250; // Set
+    const ID_BASE_COST_LOT_LINE = 1200;
+    const ID_BASE_COST_PRE_ALTA = 1000;
+    const ID_BASE_COST_TOPOGRAPHY = 1600;
+    const ID_BASE_COST_UTILITY = 900;
 
-    // Acreage Rates (Standard, Update, or 0)
+    // Acreage Rates (Updated for Legal/Easement)
     const ID_RATE_ACRE_STANDARD = 500;
     const ID_RATE_ACRE_UPDATE = 250;
     const ID_RATE_ACRE_ALTA = ID_RATE_ACRE_STANDARD;
     const ID_RATE_ACRE_TOPO = ID_RATE_ACRE_STANDARD;
-    const ID_RATE_ACRE_ALTA_UPDATE = ID_RATE_ACRE_UPDATE; // For both update types
+    const ID_RATE_ACRE_ALTA_UPDATE = ID_RATE_ACRE_UPDATE;
     const ID_RATE_ACRE_BOUNDARY = ID_RATE_ACRE_STANDARD;
     const ID_RATE_ACRE_BOUNDARY_TOPO = ID_RATE_ACRE_STANDARD;
     const ID_RATE_ACRE_DRONE_TOPO = ID_RATE_ACRE_STANDARD;
-    const ID_RATE_ACRE_EASEMENT = 0; // Assumed no acreage rate
-    const ID_RATE_ACRE_LEGAL_EXHIBIT = 0; // Assumed no acreage rate
+    const ID_RATE_ACRE_EASEMENT = 0; // Confirmed 0
+    const ID_RATE_ACRE_LEGAL_EXHIBIT = 0; // Confirmed 0
     const ID_RATE_ACRE_LOT_LINE = ID_RATE_ACRE_STANDARD;
     const ID_RATE_ACRE_PRE_ALTA = ID_RATE_ACRE_STANDARD;
     const ID_RATE_ACRE_TOPOGRAPHY = ID_RATE_ACRE_STANDARD;
-    const ID_RATE_ACRE_UTILITY = 0; // Assumed no acreage rate
+    const ID_RATE_ACRE_UTILITY = 0; // Still assumed 0
 
-    // Additional Options (Base/Topo)
+    // Other Constants
     const ID_COST_PER_CORNER = 45;
     const ID_FACTOR_VEGETATION = 0.025;
     const ID_MULTIPLIER_SERVICE_GREEN = 1.0;
     const ID_MULTIPLIER_SERVICE_YELLOW = 1.1;
     const ID_MULTIPLIER_SERVICE_RED = 1.25;
-
-    // Update Options (Field Work = Yes)
     const ID_COST_DUE_DILIGENCE = 500;
     const ID_RATE_PER_UPDATE_HOUR = 250;
-
-    // Main Multiplier Calculation
     const ID_MAIN_MULTIPLIER_OFFSET = 1;
     const ID_MAIN_MULTIPLIER_DIVISOR = 10;
 
 
     // --- Get References to Elements ---
-    const surveyTypeSelect = document.getElementById('surveyType'); // Changed
+    const surveyTypeSelect = document.getElementById('surveyType');
     const multiplierSlider = document.getElementById('multiplier');
     const multiplierValueDisplay = document.getElementById('multiplierValue');
     const multiplierGroup = document.getElementById('multiplierGroup');
@@ -178,15 +187,20 @@
     const updateDetailsDiv = document.getElementById('updateDetails');
     const cornersInput = document.getElementById('corners');
     const acreageInput = document.getElementById('acreage');
+    const acreageGroup = document.getElementById('acreageGroup'); // Added
     const dueDiligenceCheckbox = document.getElementById('dueDiligence');
     const estimatedHoursInput = document.getElementById('estimatedHours');
     const estimatedHoursGroup = document.getElementById('estimatedHoursGroup');
+    const legalDescGroup = document.getElementById('legalDescGroup'); // Added
+    const numDescriptionsInput = document.getElementById('numDescriptions'); // Added
+    const easementGroup = document.getElementById('easementGroup'); // Added
+    const numEasementsInput = document.getElementById('numEasements'); // Added
 
-    // --- Event Listeners for Sliders ---
+    // --- Event Listeners ---
     multiplierSlider.oninput = function() { multiplierValueDisplay.textContent = this.value; }
     vegetationSlider.oninput = function() { vegetationValueDisplay.textContent = `${this.value * 10}%`; }
 
-    // --- Functions to Show/Hide Conditional Sections ---
+    // --- Visibility Functions ---
     function toggleHoursAndMultiplierVisibility() {
         const isDueDiligenceChecked = dueDiligenceCheckbox.checked;
         const isUpdateOptionsVisible = updateOptionsDiv.style.display === 'block';
@@ -209,156 +223,158 @@
     }
     // --- MODIFIED Function ---
     function toggleConditionalSections() {
-        const selectedSurveyTypeValue = surveyTypeSelect.value; // Read from select
+        const selectedSurveyTypeValue = surveyTypeSelect.value;
 
-        // Hide all conditional sections initially
+        // Hide ALL potentially conditional groups first
+        acreageGroup.style.display = 'none';
         additionalOptionsDiv.style.display = 'none';
         updateOptionsDiv.style.display = 'none';
         updateDetailsDiv.style.display = 'none';
         multiplierGroup.style.display = 'none';
+        legalDescGroup.style.display = 'none';
+        easementGroup.style.display = 'none';
 
-        // Show sections based on selected dropdown value
-        if (selectedSurveyTypeValue === 'alta_survey' || selectedSurveyTypeValue === 'alta_topo') {
-            additionalOptionsDiv.style.display = 'block';
-            multiplierGroup.style.display = 'block';
-        } else if (selectedSurveyTypeValue === 'alta_update_new' || selectedSurveyTypeValue === 'alta_update_same') {
-            updateOptionsDiv.style.display = 'block';
-            toggleUpdateDetails(); // Manages details and multiplier visibility for updates
+        // Show groups based on selection
+        switch (selectedSurveyTypeValue) {
+            case 'alta_survey':
+            case 'alta_topo':
+                acreageGroup.style.display = 'block';
+                additionalOptionsDiv.style.display = 'block';
+                multiplierGroup.style.display = 'block';
+                break;
+            case 'alta_update_new':
+            case 'alta_update_same':
+                acreageGroup.style.display = 'block';
+                updateOptionsDiv.style.display = 'block';
+                toggleUpdateDetails(); // Handles details & multiplier visibility
+                break;
+            case 'legal_exhibit':
+                legalDescGroup.style.display = 'block';
+                break;
+            case 'easement_drafting':
+                easementGroup.style.display = 'block';
+                break;
+            case 'boundary':
+            case 'boundary_topo':
+            case 'drone_topo':
+            case 'lot_line_adjustment':
+            case 'pre_alta':
+            case 'topography':
+            case 'utility_locates': // Decide if Utility Locates needs acreage later
+                acreageGroup.style.display = 'block';
+                // Only acreage shown for these types currently
+                break;
+            default: // Handles unexpected values or types with no specific logic yet
+                 console.warn("Unknown survey type selected or type has no specific inputs.");
+                 break;
         }
-        // For all other new types, all conditional sections remain hidden
     }
 
     // --- Main Calculation Function ---
     function calculateBid() {
-        // 1. Get Base Values & Validate
-        const selectedSurveyTypeValue = surveyTypeSelect.value; // Read from select
+        const selectedSurveyTypeValue = surveyTypeSelect.value;
         let baseCost = 0;
-        let acreageRate = 0; // Initialize acreage rate
+        let acreageRate = 0;
+        let finalBidCost = 0; // Initialize final cost
 
-        // *** Set Base Cost AND Acreage Rate based on selected type using Constants ***
+        // Set Base Cost AND Acreage Rate based on selected type
         switch (selectedSurveyTypeValue) {
-            case 'alta_survey':
-                baseCost = ID_BASE_COST_ALTA;
-                acreageRate = ID_RATE_ACRE_ALTA;
-                break;
-            case 'alta_topo':
-                baseCost = ID_BASE_COST_TOPO;
-                acreageRate = ID_RATE_ACRE_TOPO;
-                break;
-            case 'alta_update_new':
-                baseCost = ID_BASE_COST_UPDATE_NEW;
-                acreageRate = ID_RATE_ACRE_ALTA_UPDATE;
-                break;
-            case 'alta_update_same':
-                baseCost = ID_BASE_COST_UPDATE_SAME;
-                acreageRate = ID_RATE_ACRE_ALTA_UPDATE;
-                break;
-            case 'boundary':
-                baseCost = ID_BASE_COST_BOUNDARY;
-                acreageRate = ID_RATE_ACRE_BOUNDARY;
-                break;
-            case 'boundary_topo':
-                baseCost = ID_BASE_COST_BOUNDARY_TOPO;
-                acreageRate = ID_RATE_ACRE_BOUNDARY_TOPO;
-                break;
-            case 'drone_topo':
-                baseCost = ID_BASE_COST_DRONE_TOPO;
-                acreageRate = ID_RATE_ACRE_DRONE_TOPO;
-                break;
-            case 'easement_drafting':
-                baseCost = ID_BASE_COST_EASEMENT;
-                acreageRate = ID_RATE_ACRE_EASEMENT;
-                break;
-            case 'legal_exhibit':
-                baseCost = ID_BASE_COST_LEGAL_EXHIBIT;
-                acreageRate = ID_RATE_ACRE_LEGAL_EXHIBIT;
-                break;
-            case 'lot_line_adjustment':
-                baseCost = ID_BASE_COST_LOT_LINE;
-                acreageRate = ID_RATE_ACRE_LOT_LINE;
-                break;
-            case 'pre_alta':
-                baseCost = ID_BASE_COST_PRE_ALTA;
-                acreageRate = ID_RATE_ACRE_PRE_ALTA;
-                break;
-            case 'topography':
-                baseCost = ID_BASE_COST_TOPOGRAPHY;
-                acreageRate = ID_RATE_ACRE_TOPOGRAPHY;
-                break;
-            case 'utility_locates':
-                baseCost = ID_BASE_COST_UTILITY;
-                acreageRate = ID_RATE_ACRE_UTILITY;
-                break;
-            default:
-                document.getElementById('result').innerText = "Error: Unknown survey type selected."; return;
+            case 'alta_survey': baseCost = ID_BASE_COST_ALTA; acreageRate = ID_RATE_ACRE_ALTA; break;
+            case 'alta_topo': baseCost = ID_BASE_COST_TOPO; acreageRate = ID_RATE_ACRE_TOPO; break;
+            case 'alta_update_new': baseCost = ID_BASE_COST_UPDATE_NEW; acreageRate = ID_RATE_ACRE_ALTA_UPDATE; break;
+            case 'alta_update_same': baseCost = ID_BASE_COST_UPDATE_SAME; acreageRate = ID_RATE_ACRE_ALTA_UPDATE; break;
+            case 'boundary': baseCost = ID_BASE_COST_BOUNDARY; acreageRate = ID_RATE_ACRE_BOUNDARY; break;
+            case 'boundary_topo': baseCost = ID_BASE_COST_BOUNDARY_TOPO; acreageRate = ID_RATE_ACRE_BOUNDARY_TOPO; break;
+            case 'drone_topo': baseCost = ID_BASE_COST_DRONE_TOPO; acreageRate = ID_RATE_ACRE_DRONE_TOPO; break;
+            case 'easement_drafting': baseCost = ID_BASE_COST_EASEMENT; acreageRate = ID_RATE_ACRE_EASEMENT; break;
+            case 'legal_exhibit': baseCost = ID_BASE_COST_LEGAL_EXHIBIT; acreageRate = ID_RATE_ACRE_LEGAL_EXHIBIT; break;
+            case 'lot_line_adjustment': baseCost = ID_BASE_COST_LOT_LINE; acreageRate = ID_RATE_ACRE_LOT_LINE; break;
+            case 'pre_alta': baseCost = ID_BASE_COST_PRE_ALTA; acreageRate = ID_RATE_ACRE_PRE_ALTA; break;
+            case 'topography': baseCost = ID_BASE_COST_TOPOGRAPHY; acreageRate = ID_RATE_ACRE_TOPOGRAPHY; break;
+            case 'utility_locates': baseCost = ID_BASE_COST_UTILITY; acreageRate = ID_RATE_ACRE_UTILITY; break;
+            default: document.getElementById('result').innerText = "Error: Unknown survey type."; return;
         }
 
-        const acreage = parseFloat(acreageInput.value);
-        let userMultiplier = 0;
-        if (multiplierGroup.style.display === 'block') {
-             userMultiplier = parseInt(multiplierSlider.value);
-             if (isNaN(userMultiplier) || userMultiplier < 0 || userMultiplier > 10) { /* ... validation ... */ return; }
-        }
-        if (isNaN(acreage) || acreage < 0) { /* ... validation ... */ return; }
+        // --- Specific Calculation for Legal/Easement ---
+        if (selectedSurveyTypeValue === 'legal_exhibit') {
+            const numDescriptions = parseInt(numDescriptionsInput.value);
+            if (isNaN(numDescriptions) || numDescriptions < 1) {
+                 document.getElementById('result').innerText = "Please enter a valid number of descriptions (at least 1).";
+                 numDescriptionsInput.focus(); return;
+            }
+            finalBidCost = baseCost * numDescriptions;
 
-        // --- Core Calculation ---
-        // 2. Calculate Base Subtotal (acreageRate is now set by the switch)
-        const acreageFee = acreageRate * acreage; // Use rate determined above
-        const subtotal = baseCost + acreageFee;
+        } else if (selectedSurveyTypeValue === 'easement_drafting') {
+            const numEasements = parseInt(numEasementsInput.value);
+             if (isNaN(numEasements) || numEasements < 1) {
+                 document.getElementById('result').innerText = "Please enter a valid number of easements (at least 1).";
+                 numEasementsInput.focus(); return;
+            }
+            finalBidCost = baseCost * numEasements;
 
-        // 3. Initialize and Calculate Base/Topo Additional Costs
-        let cornersCost = 0, vegetationAddOn = 0, serviceAreaMultiplier = ID_MULTIPLIER_SERVICE_GREEN; // Default Green
-        if (additionalOptionsDiv.style.display === 'block') { // This only shows for alta_survey and alta_topo
-            const cornersValue = parseInt(cornersInput.value);
-            if (!isNaN(cornersValue) && cornersValue >= 0) {
-                cornersCost = ID_COST_PER_CORNER * cornersValue;
-            } else if (cornersInput.value !== "" && cornersInput.value !== "0") { /* ... validation ... */ return; }
-
-            const vegetationSliderValue = parseInt(vegetationSlider.value);
-            if (!isNaN(vegetationSliderValue)) {
-                 vegetationAddOn = subtotal * (vegetationSliderValue * ID_FACTOR_VEGETATION);
+        } else {
+            // --- Existing Calculation Logic for all OTHER types ---
+            const acreage = parseFloat(acreageInput.value);
+            let userMultiplier = 0;
+            if (multiplierGroup.style.display === 'block') {
+                 userMultiplier = parseInt(multiplierSlider.value);
+                 if (isNaN(userMultiplier) || userMultiplier < 0 || userMultiplier > 10) { /* ... validation ... */ return; }
+            }
+             // Validate acreage only if the rate is not 0 (relevant for types like Utility Locates if rate is 0)
+            if (acreageRate > 0 && (isNaN(acreage) || acreage < 0)) {
+                 document.getElementById('result').innerText = "Please enter a valid positive number for acreage.";
+                 acreageInput.focus(); return;
+            } else if (acreageRate === 0 && isNaN(acreage)){
+                 // If rate is 0, acreage doesn't strictly need validation unless entered incorrectly
+                 if(acreageInput.value !== "" && acreageInput.value !== "0") {
+                      document.getElementById('result').innerText = "Acreage value invalid (leave 0 if not applicable).";
+                      acreageInput.focus(); return;
+                 }
+                 // Treat empty/invalid as 0 if rate is 0
+                 // acreage = 0; // Ensure acreage is 0 if rate is 0
             }
 
-            const serviceAreaElement = document.querySelector('input[name="serviceArea"]:checked');
-            // *** Get Service Area Multiplier using ID and Constants ***
-            if (serviceAreaElement) {
-                switch (serviceAreaElement.id) { // Use ID here as value was removed
-                    case 'areaYellow': serviceAreaMultiplier = ID_MULTIPLIER_SERVICE_YELLOW; break;
-                    case 'areaRed': serviceAreaMultiplier = ID_MULTIPLIER_SERVICE_RED; break;
+
+            const acreageFee = acreageRate * (isNaN(acreage) || acreage < 0 ? 0 : acreage); // Use 0 acreage if invalid/not applicable but rate > 0
+            const subtotal = baseCost + acreageFee;
+
+            let cornersCost = 0, vegetationAddOn = 0, serviceAreaMultiplier = ID_MULTIPLIER_SERVICE_GREEN;
+            if (additionalOptionsDiv.style.display === 'block') {
+                const cornersValue = parseInt(cornersInput.value);
+                 if (!isNaN(cornersValue) && cornersValue >= 0) { cornersCost = ID_COST_PER_CORNER * cornersValue; }
+                 else if (cornersInput.value !== "" && cornersInput.value !== "0") { /* ... validation ... */ return; }
+
+                const vegetationSliderValue = parseInt(vegetationSlider.value);
+                if (!isNaN(vegetationSliderValue)) { vegetationAddOn = subtotal * (vegetationSliderValue * ID_FACTOR_VEGETATION); }
+
+                const serviceAreaElement = document.querySelector('input[name="serviceArea"]:checked');
+                if (serviceAreaElement) {
+                    switch (serviceAreaElement.id) {
+                        case 'areaYellow': serviceAreaMultiplier = ID_MULTIPLIER_SERVICE_YELLOW; break;
+                        case 'areaRed': serviceAreaMultiplier = ID_MULTIPLIER_SERVICE_RED; break;
+                    }
                 }
             }
-        }
 
-        // 4. Calculate Adjusted Subtotal and Apply Service Area Multiplier
-        const adjustedSubtotal = subtotal + cornersCost + vegetationAddOn;
-        const preMultiplierTotal = adjustedSubtotal * serviceAreaMultiplier;
+            const adjustedSubtotal = subtotal + cornersCost + vegetationAddOn;
+            const preMultiplierTotal = adjustedSubtotal * serviceAreaMultiplier;
+            const calculationMultiplier = ID_MAIN_MULTIPLIER_OFFSET + (userMultiplier / ID_MAIN_MULTIPLIER_DIVISOR);
+            let coreBidCost = preMultiplierTotal * calculationMultiplier;
 
-        // 5. Calculate Main Multiplier
-        const calculationMultiplier = ID_MAIN_MULTIPLIER_OFFSET + (userMultiplier / ID_MAIN_MULTIPLIER_DIVISOR);
-
-        // 6. Calculate Core Bid Cost
-        let coreBidCost = preMultiplierTotal * calculationMultiplier;
-
-        // 7. Initialize and Calculate Update Add-on Costs
-        let updateAddOnCost = 0;
-        // Check visibility of the main update container first
-        if (updateOptionsDiv.style.display === 'block') {
-            const fieldWorkRequired = document.getElementById('fieldWorkYes').checked;
-            if (fieldWorkRequired) {
-                if (dueDiligenceCheckbox.checked) {
-                    updateAddOnCost += ID_COST_DUE_DILIGENCE;
-                }
-                if (estimatedHoursGroup.style.display === 'block') {
-                    const estimatedHours = parseFloat(estimatedHoursInput.value);
-                    if (!isNaN(estimatedHours) && estimatedHours >= 0) {
-                        updateAddOnCost += estimatedHours * ID_RATE_PER_UPDATE_HOUR;
-                    } else if (estimatedHoursInput.value !== "" && estimatedHoursInput.value !== "0") { /* ... validation ... */ return; }
+            let updateAddOnCost = 0;
+            if (updateOptionsDiv.style.display === 'block') {
+                const fieldWorkRequired = document.getElementById('fieldWorkYes').checked;
+                if (fieldWorkRequired) {
+                    if (dueDiligenceCheckbox.checked) { updateAddOnCost += ID_COST_DUE_DILIGENCE; }
+                    if (estimatedHoursGroup.style.display === 'block') {
+                         const estimatedHours = parseFloat(estimatedHoursInput.value);
+                         if (!isNaN(estimatedHours) && estimatedHours >= 0) { updateAddOnCost += estimatedHours * ID_RATE_PER_UPDATE_HOUR; }
+                         else if (estimatedHoursInput.value !== "" && estimatedHoursInput.value !== "0") { /* ... validation ... */ return; }
+                    }
                 }
             }
-        }
-
-        // 8. Calculate Final Cost
-        const finalBidCost = coreBidCost + updateAddOnCost;
+            finalBidCost = coreBidCost + updateAddOnCost;
+        } // End else
 
         // --- Display Result ---
         const formattedCost = finalBidCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -368,7 +384,7 @@
     // --- Initial Setup ---
     multiplierValueDisplay.textContent = multiplierSlider.value;
     vegetationValueDisplay.textContent = `${vegetationSlider.value * 10}%`;
-    toggleConditionalSections(); // Run once to set initial visibility
+    toggleConditionalSections();
 
 </script>
 

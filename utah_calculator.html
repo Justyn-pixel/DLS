@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Utah Bid Calculator</title>
-    <style>
+     <style>
         /* Styles remain the same */
         body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
         .calculator { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
@@ -22,8 +22,8 @@
         button:hover { background-color: #c41a1e; }
         #result { margin-top: 25px; font-size: 1.5em; font-weight: bold; text-align: center; padding: 15px; background-color: #e9ecef; border-radius: 4px; }
         .value-display { display: inline-block; font-weight: bold; min-width: 40px; text-align: right; }
-        #additionalOptions, #updateOptions, #updateDetails, #multiplierGroup { display: none; border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; }
-        #updateOptions, #multiplierGroup { border-top: none; margin-top: 0; padding-top: 10px; }
+        #acreageGroup, #additionalOptions, #updateOptions, #updateDetails, #multiplierGroup, #legalDescGroup, #easementGroup { display: none; border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; }
+        #additionalOptions, #updateOptions, #multiplierGroup, #legalDescGroup, #easementGroup { border-top: none; margin-top: 0; padding-top: 10px; }
         #updateDetails { border-top: none; margin-top: 0; padding-top: 10px; }
     </style>
 </head>
@@ -32,7 +32,6 @@
 <div class="calculator">
 
     <img src="https://www.diamondlandsurveying.com/wp-content/uploads/2019/01/logo-1.png" alt="Diamond Land Surveying Logo" class="logo-image">
-
     <h2>Utah Survey Bid Calculator</h2>
 
     <div class="form-group">
@@ -54,9 +53,19 @@
         </select>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" id="acreageGroup">
         <label for="acreage">Acreage:</label>
-        <input type="number" id="acreage" name="acreage" min="0" step="0.01" placeholder="e.g., 5.25" required>
+        <input type="number" id="acreage" name="acreage" min="0" step="0.01" value="0" placeholder="e.g., 5.25" required>
+    </div>
+
+    <div class="form-group" id="legalDescGroup">
+        <label for="numDescriptions">Number of Descriptions:</label>
+        <input type="number" id="numDescriptions" name="numDescriptions" min="1" step="1" value="1">
+    </div>
+
+    <div class="form-group" id="easementGroup">
+        <label for="numEasements">Number of Easements:</label>
+        <input type="number" id="numEasements" name="numEasements" min="1" step="1" value="1">
     </div>
 
     <div id="additionalOptions">
@@ -81,7 +90,7 @@
         </div>
     </div>
     <div id="updateOptions">
-        <h4>Update Options</h4>
+         <h4>Update Options</h4>
         <div class="form-group">
             <label>Does Update Require Field Work?</label>
             <input type="radio" id="fieldWorkNo" name="fieldWorkRequired" value="no" checked onchange="toggleUpdateDetails()">
@@ -100,63 +109,62 @@
             </div>
         </div>
     </div>
-    <div class="form-group" id="multiplierGroup">
+     <div class="form-group" id="multiplierGroup">
         <label for="multiplier">Multiplier (0-10):</label>
         <input type="range" id="multiplier" name="multiplier" min="0" max="10" value="0" step="1">
         <span id="multiplierValue" class="value-display">0</span>
     </div>
 
     <button type="button" onclick="calculateBid()">Calculate Bid</button>
-
-    <div id="result">
-        Your estimated bid cost will appear here.
-    </div>
+    <div id="result"> Your estimated bid cost will appear here. </div>
 </div>
 
 <script>
     // --- UTAH CONFIGURATION CONSTANTS ---
-    // !!! IMPORTANT: Update these placeholder values for Utah pricing !!!
-    const UT_BASE_COST_ALTA = 2600; // Example: Changed for UT
-    const UT_BASE_COST_TOPO = 4200; // Example: Changed for UT
-    const UT_BASE_COST_UPDATE_NEW = 3600; // Example: Changed for UT
-    const UT_BASE_COST_UPDATE_SAME = 3100; // Example: Changed for UT
-    const UT_BASE_COST_BOUNDARY = 1600; // Placeholder
-    const UT_BASE_COST_BOUNDARY_TOPO = 2700; // Placeholder
-    const UT_BASE_COST_DRONE_TOPO = 1900; // Placeholder
-    const UT_BASE_COST_EASEMENT = 850; // Placeholder
-    const UT_BASE_COST_LEGAL_EXHIBIT = 650; // Placeholder
-    const UT_BASE_COST_LOT_LINE = 1300; // Placeholder
-    const UT_BASE_COST_PRE_ALTA = 1100; // Placeholder
-    const UT_BASE_COST_TOPOGRAPHY = 1700; // Placeholder
-    const UT_BASE_COST_UTILITY = 950; // Placeholder
+    // !!! IMPORTANT: Update these values for Utah pricing !!!
+    const UT_BASE_COST_ALTA = 2600; // Example
+    const UT_BASE_COST_TOPO = 4200; // Example
+    const UT_BASE_COST_UPDATE_NEW = 3600; // Example
+    const UT_BASE_COST_UPDATE_SAME = 3100; // Example
+    const UT_BASE_COST_BOUNDARY = 1600; // Placeholder - UPDATE
+    const UT_BASE_COST_BOUNDARY_TOPO = 2700; // Placeholder - UPDATE
+    const UT_BASE_COST_DRONE_TOPO = 1900; // Placeholder - UPDATE
+    const UT_BASE_COST_EASEMENT = 1250; // Set - UPDATE IF NEEDED
+    const UT_BASE_COST_LEGAL_EXHIBIT = 1250; // Set - UPDATE IF NEEDED
+    const UT_BASE_COST_LOT_LINE = 1300; // Placeholder - UPDATE
+    const UT_BASE_COST_PRE_ALTA = 1100; // Placeholder - UPDATE
+    const UT_BASE_COST_TOPOGRAPHY = 1700; // Placeholder - UPDATE
+    const UT_BASE_COST_UTILITY = 950; // Placeholder - UPDATE
 
-    const UT_RATE_ACRE_STANDARD = 550; // Example: Changed for UT
-    const UT_RATE_ACRE_UPDATE = 275; // Example: Changed for UT
+    // Acreage Rates
+    const UT_RATE_ACRE_STANDARD = 550; // Example
+    const UT_RATE_ACRE_UPDATE = 275; // Example
     const UT_RATE_ACRE_ALTA = UT_RATE_ACRE_STANDARD;
     const UT_RATE_ACRE_TOPO = UT_RATE_ACRE_STANDARD;
     const UT_RATE_ACRE_ALTA_UPDATE = UT_RATE_ACRE_UPDATE;
-    const UT_RATE_ACRE_BOUNDARY = UT_RATE_ACRE_STANDARD;
-    const UT_RATE_ACRE_BOUNDARY_TOPO = UT_RATE_ACRE_STANDARD;
-    const UT_RATE_ACRE_DRONE_TOPO = UT_RATE_ACRE_STANDARD;
-    const UT_RATE_ACRE_EASEMENT = 0;
-    const UT_RATE_ACRE_LEGAL_EXHIBIT = 0;
-    const UT_RATE_ACRE_LOT_LINE = UT_RATE_ACRE_STANDARD;
-    const UT_RATE_ACRE_PRE_ALTA = UT_RATE_ACRE_STANDARD;
-    const UT_RATE_ACRE_TOPOGRAPHY = UT_RATE_ACRE_STANDARD;
-    const UT_RATE_ACRE_UTILITY = 0;
+    const UT_RATE_ACRE_BOUNDARY = UT_RATE_ACRE_STANDARD; // UPDATE IF NEEDED
+    const UT_RATE_ACRE_BOUNDARY_TOPO = UT_RATE_ACRE_STANDARD; // UPDATE IF NEEDED
+    const UT_RATE_ACRE_DRONE_TOPO = UT_RATE_ACRE_STANDARD; // UPDATE IF NEEDED
+    const UT_RATE_ACRE_EASEMENT = 0; // Confirmed 0
+    const UT_RATE_ACRE_LEGAL_EXHIBIT = 0; // Confirmed 0
+    const UT_RATE_ACRE_LOT_LINE = UT_RATE_ACRE_STANDARD; // UPDATE IF NEEDED
+    const UT_RATE_ACRE_PRE_ALTA = UT_RATE_ACRE_STANDARD; // UPDATE IF NEEDED
+    const UT_RATE_ACRE_TOPOGRAPHY = UT_RATE_ACRE_STANDARD; // UPDATE IF NEEDED
+    const UT_RATE_ACRE_UTILITY = 0; // Assumed 0 - UPDATE IF NEEDED
 
-    const UT_COST_PER_CORNER = 50; // Example: Changed for UT
-    const UT_FACTOR_VEGETATION = 0.03; // Example: Changed for UT (3%)
+    // Other Constants
+    const UT_COST_PER_CORNER = 50; // Example
+    const UT_FACTOR_VEGETATION = 0.03; // Example
     const UT_MULTIPLIER_SERVICE_GREEN = 1.0;
-    const UT_MULTIPLIER_SERVICE_YELLOW = 1.15; // Example: Changed for UT
-    const UT_MULTIPLIER_SERVICE_RED = 1.30; // Example: Changed for UT
-    const UT_COST_DUE_DILIGENCE = 550; // Example: Changed for UT
-    const UT_RATE_PER_UPDATE_HOUR = 275; // Example: Changed for UT
+    const UT_MULTIPLIER_SERVICE_YELLOW = 1.15; // Example
+    const UT_MULTIPLIER_SERVICE_RED = 1.30; // Example
+    const UT_COST_DUE_DILIGENCE = 550; // Example
+    const UT_RATE_PER_UPDATE_HOUR = 275; // Example
     const UT_MAIN_MULTIPLIER_OFFSET = 1;
     const UT_MAIN_MULTIPLIER_DIVISOR = 10;
 
 
-    // --- Get References to Elements --- (No changes)
+    // --- Get References to Elements --- (Identical JS below)
     const surveyTypeSelect = document.getElementById('surveyType');
     const multiplierSlider = document.getElementById('multiplier');
     const multiplierValueDisplay = document.getElementById('multiplierValue');
@@ -168,20 +176,25 @@
     const updateDetailsDiv = document.getElementById('updateDetails');
     const cornersInput = document.getElementById('corners');
     const acreageInput = document.getElementById('acreage');
+    const acreageGroup = document.getElementById('acreageGroup');
     const dueDiligenceCheckbox = document.getElementById('dueDiligence');
     const estimatedHoursInput = document.getElementById('estimatedHours');
     const estimatedHoursGroup = document.getElementById('estimatedHoursGroup');
+    const legalDescGroup = document.getElementById('legalDescGroup');
+    const numDescriptionsInput = document.getElementById('numDescriptions');
+    const easementGroup = document.getElementById('easementGroup');
+    const numEasementsInput = document.getElementById('numEasements');
 
-    // --- Event Listeners for Sliders --- (No changes)
+    // --- Event Listeners --- (Identical JS below)
     multiplierSlider.oninput = function() { multiplierValueDisplay.textContent = this.value; }
     vegetationSlider.oninput = function() { vegetationValueDisplay.textContent = `${this.value * 10}%`; }
 
-    // --- Functions to Show/Hide Conditional Sections --- (No changes)
-    function toggleHoursAndMultiplierVisibility() { /* ...logic... */ }
-    function toggleUpdateDetails() { /* ...logic... */ }
-    function toggleConditionalSections() { /* ...logic... */ }
+    // --- Visibility Functions --- (Identical JS below)
+    function toggleHoursAndMultiplierVisibility() { /* ... Idaho logic ... */ }
+    function toggleUpdateDetails() { /* ... Idaho logic ... */ }
+    function toggleConditionalSections() { /* ... Idaho logic ... */ }
     // Function bodies are identical to Idaho file, paste them here if generating fresh
-    function toggleHoursAndMultiplierVisibility() {
+     function toggleHoursAndMultiplierVisibility() {
         const isDueDiligenceChecked = dueDiligenceCheckbox.checked;
         const isUpdateOptionsVisible = updateOptionsDiv.style.display === 'block';
         estimatedHoursGroup.style.display = isDueDiligenceChecked ? 'none' : 'block';
@@ -201,18 +214,25 @@
             }
         }
     }
-    function toggleConditionalSections() {
+     function toggleConditionalSections() {
         const selectedSurveyTypeValue = surveyTypeSelect.value;
+        acreageGroup.style.display = 'none';
         additionalOptionsDiv.style.display = 'none';
         updateOptionsDiv.style.display = 'none';
         updateDetailsDiv.style.display = 'none';
         multiplierGroup.style.display = 'none';
-        if (selectedSurveyTypeValue === 'alta_survey' || selectedSurveyTypeValue === 'alta_topo') {
-            additionalOptionsDiv.style.display = 'block';
-            multiplierGroup.style.display = 'block';
-        } else if (selectedSurveyTypeValue === 'alta_update_new' || selectedSurveyTypeValue === 'alta_update_same') {
-            updateOptionsDiv.style.display = 'block';
-            toggleUpdateDetails();
+        legalDescGroup.style.display = 'none';
+        easementGroup.style.display = 'none';
+        switch (selectedSurveyTypeValue) {
+            case 'alta_survey': case 'alta_topo':
+                acreageGroup.style.display = 'block'; additionalOptionsDiv.style.display = 'block'; multiplierGroup.style.display = 'block'; break;
+            case 'alta_update_new': case 'alta_update_same':
+                acreageGroup.style.display = 'block'; updateOptionsDiv.style.display = 'block'; toggleUpdateDetails(); break;
+            case 'legal_exhibit': legalDescGroup.style.display = 'block'; break;
+            case 'easement_drafting': easementGroup.style.display = 'block'; break;
+            case 'boundary': case 'boundary_topo': case 'drone_topo': case 'lot_line_adjustment': case 'pre_alta': case 'topography': case 'utility_locates':
+                acreageGroup.style.display = 'block'; break;
+            default: console.warn("Unknown survey type selected."); break;
         }
     }
 
@@ -222,8 +242,9 @@
         const selectedSurveyTypeValue = surveyTypeSelect.value;
         let baseCost = 0;
         let acreageRate = 0;
+        let finalBidCost = 0;
 
-        // Use UT_ constants
+        // Set Base Cost AND Acreage Rate using UT_ Constants
         switch (selectedSurveyTypeValue) {
             case 'alta_survey': baseCost = UT_BASE_COST_ALTA; acreageRate = UT_RATE_ACRE_ALTA; break;
             case 'alta_topo': baseCost = UT_BASE_COST_TOPO; acreageRate = UT_RATE_ACRE_TOPO; break;
@@ -241,57 +262,66 @@
             default: document.getElementById('result').innerText = "Error: Unknown survey type."; return;
         }
 
-        const acreage = parseFloat(acreageInput.value);
-        let userMultiplier = 0;
-        if (multiplierGroup.style.display === 'block') {
-             userMultiplier = parseInt(multiplierSlider.value);
-             if (isNaN(userMultiplier) || userMultiplier < 0 || userMultiplier > 10) { /* ... validation ... */ return; }
-        }
-        if (isNaN(acreage) || acreage < 0) { /* ... validation ... */ return; }
+        // Specific Calculation for Legal/Easement
+        if (selectedSurveyTypeValue === 'legal_exhibit') {
+            const numDescriptions = parseInt(numDescriptionsInput.value);
+            if (isNaN(numDescriptions) || numDescriptions < 1) { /* ... validation ... */ return; }
+            finalBidCost = baseCost * numDescriptions;
+        } else if (selectedSurveyTypeValue === 'easement_drafting') {
+            const numEasements = parseInt(numEasementsInput.value);
+             if (isNaN(numEasements) || numEasements < 1) { /* ... validation ... */ return; }
+            finalBidCost = baseCost * numEasements;
+        } else {
+            // Existing Calculation Logic for all OTHER types using UT_ Constants
+            const acreage = parseFloat(acreageInput.value);
+            let userMultiplier = 0;
+            if (multiplierGroup.style.display === 'block') {
+                 userMultiplier = parseInt(multiplierSlider.value);
+                 if (isNaN(userMultiplier) || userMultiplier < 0 || userMultiplier > 10) { /* ... validation ... */ return; }
+            }
+            if (acreageRate > 0 && (isNaN(acreage) || acreage < 0)) { /* ... validation ... */ return; }
+            else if (acreageRate === 0 && isNaN(acreage)){ if(acreageInput.value !== "" && acreageInput.value !== "0") { /* ... validation ... */ return; } }
 
-        const acreageFee = acreageRate * acreage;
-        const subtotal = baseCost + acreageFee;
+            const acreageFee = acreageRate * (isNaN(acreage) || acreage < 0 ? 0 : acreage);
+            const subtotal = baseCost + acreageFee;
 
-        // Use UT_ constants
-        let cornersCost = 0, vegetationAddOn = 0, serviceAreaMultiplier = UT_MULTIPLIER_SERVICE_GREEN;
-        if (additionalOptionsDiv.style.display === 'block') {
-            const cornersValue = parseInt(cornersInput.value);
-            if (!isNaN(cornersValue) && cornersValue >= 0) { cornersCost = UT_COST_PER_CORNER * cornersValue; }
-            else if (cornersInput.value !== "" && cornersInput.value !== "0") { /* ... validation ... */ return; }
-
-            const vegetationSliderValue = parseInt(vegetationSlider.value);
-            if (!isNaN(vegetationSliderValue)) { vegetationAddOn = subtotal * (vegetationSliderValue * UT_FACTOR_VEGETATION); }
-
-            const serviceAreaElement = document.querySelector('input[name="serviceArea"]:checked');
-            if (serviceAreaElement) {
-                switch (serviceAreaElement.id) {
-                    case 'areaYellow': serviceAreaMultiplier = UT_MULTIPLIER_SERVICE_YELLOW; break;
-                    case 'areaRed': serviceAreaMultiplier = UT_MULTIPLIER_SERVICE_RED; break;
+            let cornersCost = 0, vegetationAddOn = 0, serviceAreaMultiplier = UT_MULTIPLIER_SERVICE_GREEN;
+            if (additionalOptionsDiv.style.display === 'block') {
+                const cornersValue = parseInt(cornersInput.value);
+                if (!isNaN(cornersValue) && cornersValue >= 0) { cornersCost = UT_COST_PER_CORNER * cornersValue; }
+                else if (cornersInput.value !== "" && cornersInput.value !== "0") { /* ... validation ... */ return; }
+                const vegetationSliderValue = parseInt(vegetationSlider.value);
+                if (!isNaN(vegetationSliderValue)) { vegetationAddOn = subtotal * (vegetationSliderValue * UT_FACTOR_VEGETATION); }
+                const serviceAreaElement = document.querySelector('input[name="serviceArea"]:checked');
+                if (serviceAreaElement) {
+                    switch (serviceAreaElement.id) {
+                        case 'areaYellow': serviceAreaMultiplier = UT_MULTIPLIER_SERVICE_YELLOW; break;
+                        case 'areaRed': serviceAreaMultiplier = UT_MULTIPLIER_SERVICE_RED; break;
+                    }
                 }
             }
-        }
 
-        const adjustedSubtotal = subtotal + cornersCost + vegetationAddOn;
-        const preMultiplierTotal = adjustedSubtotal * serviceAreaMultiplier;
-        // Use UT_ constants
-        const calculationMultiplier = UT_MAIN_MULTIPLIER_OFFSET + (userMultiplier / UT_MAIN_MULTIPLIER_DIVISOR);
-        let coreBidCost = preMultiplierTotal * calculationMultiplier;
+            const adjustedSubtotal = subtotal + cornersCost + vegetationAddOn;
+            const preMultiplierTotal = adjustedSubtotal * serviceAreaMultiplier;
+            const calculationMultiplier = UT_MAIN_MULTIPLIER_OFFSET + (userMultiplier / UT_MAIN_MULTIPLIER_DIVISOR);
+            let coreBidCost = preMultiplierTotal * calculationMultiplier;
 
-        // Use UT_ constants
-        let updateAddOnCost = 0;
-        if (updateOptionsDiv.style.display === 'block') {
-            const fieldWorkRequired = document.getElementById('fieldWorkYes').checked;
-            if (fieldWorkRequired) {
-                if (dueDiligenceCheckbox.checked) { updateAddOnCost += UT_COST_DUE_DILIGENCE; }
-                if (estimatedHoursGroup.style.display === 'block') {
-                    const estimatedHours = parseFloat(estimatedHoursInput.value);
-                    if (!isNaN(estimatedHours) && estimatedHours >= 0) { updateAddOnCost += estimatedHours * UT_RATE_PER_UPDATE_HOUR; }
-                    else if (estimatedHoursInput.value !== "" && estimatedHoursInput.value !== "0") { /* ... validation ... */ return; }
+            let updateAddOnCost = 0;
+            if (updateOptionsDiv.style.display === 'block') {
+                const fieldWorkRequired = document.getElementById('fieldWorkYes').checked;
+                if (fieldWorkRequired) {
+                    if (dueDiligenceCheckbox.checked) { updateAddOnCost += UT_COST_DUE_DILIGENCE; }
+                    if (estimatedHoursGroup.style.display === 'block') {
+                         const estimatedHours = parseFloat(estimatedHoursInput.value);
+                         if (!isNaN(estimatedHours) && estimatedHours >= 0) { updateAddOnCost += estimatedHours * UT_RATE_PER_UPDATE_HOUR; }
+                         else if (estimatedHoursInput.value !== "" && estimatedHoursInput.value !== "0") { /* ... validation ... */ return; }
+                    }
                 }
             }
-        }
+            finalBidCost = coreBidCost + updateAddOnCost;
+        } // End else
 
-        const finalBidCost = coreBidCost + updateAddOnCost;
+        // --- Display Result ---
         const formattedCost = finalBidCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
         document.getElementById('result').innerText = `Estimated Bid Cost: ${formattedCost}`;
     }
